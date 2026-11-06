@@ -77,6 +77,8 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 
 ## Tooling notes
 
+- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. None of them posts or pushes without asking.
+
 - The owner's shell has an RTK hook that rewrites some commands (`curl`, `grep`, `cat`, `ls`) and filters their output. Use `rtk proxy <command>` for raw output. Don't pipe `curl` into `sh`: download to a file first. If `pnpm lint` prints "Linter process terminated abnormally", run `rtk proxy ./node_modules/.bin/oxlint --deny-warnings .` to see the real result.
 - Claude Code memory for this project is keyed to the folder path (`…/apps/sonar`); renaming the folder starts a fresh memory.
 
