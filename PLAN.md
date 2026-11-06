@@ -1,6 +1,6 @@
 # Readar — product and build plan
 
-> Status: Phase 0 nearly done (6 Nov 2026). What comes next, in order: [§11 Next up](#next-up). Known gaps: [§11 Known limitations](#known-limitations).
+> Status: §11 steps 1–2 done (6 Nov 2026, PR #1): real articles, Supabase sync, email sign-in. Next: [§11 Next up](#next-up) step 3 (sync follow-ups), then step 4 (Claude summaries). Known gaps: [§11 Known limitations](#known-limitations).
 > Repo: `git@github.com:Adzouz/Readar.git`. The local folder is still named `sonar/`, the working title.
 > Visual brief with a clickable deck prototype: https://claude.ai/artifact/NuKHhwoXB6bxKiPjfpKQNJ (source: [docs/brief.html](docs/brief.html)).
 
@@ -187,9 +187,12 @@ In order, for the next sessions:
 
 1. **Supabase foundation (done 6 Nov; migration applied).** `packages/core` holds the catalog, URL helpers and shared types. Schema, RLS, grants and client functions: `supabase/migrations/` (Supabase CLI, plain SQL). The client (`apps/client/src/sync`) starts an anonymous session, syncs the setup (`get_setup` / `save_setup`), loads decks and lists (`deck`, `list_items`), queues swipes in an outbox (`user_items`), and offers email-code sign-in in Settings. Checked end to end in the browser: anonymous session, setup saved, real decks, a like saved and reloaded from the server. Left: email sign-in on two devices.
 2. **Fetch worker and real articles (done 6 Nov, runs locally).** `apps/worker` runs locally (`pnpm worker`, or `pnpm worker:once`). It syncs catalog, keyword and link sources, claims due sources, uses conditional GET, parses with feedsmith, decodes Google News links, falls back to the YouTube Data API when `YOUTUBE_API_KEY` is set, dedupes on the canonical URL hash, and extracts text with Readability while honoring robots.txt. First pass: 160 items from 13 sources in 21 s. Left: embeddings and ranking (pick the embedding model, §12) and a host (§12).
-3. **Claude key and on-device summaries.** A keychain-backed Tauri command on Mac and iPhone, browser storage with a clear warning on web; decide the call path (the SDK in the webview, or a Rust-side request so the key never reaches JavaScript). Set a strict CSP first. Add a skippable "Connect Claude" onboarding step and a Settings entry, and validate the key with one cheap call. Run the summary spike on ~50 real articles (quality, tokens, cost).
-4. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
-5. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
+3. **Sync follow-ups (before summaries).** From the PR #1 re-review, both small, one PR (branch `fix/sync-follow-ups`):
+   - Swipe race in `apps/client/src/sync/content.ts` (`applyPending` call in `loadContent`): only swipes still waiting to be sent are applied over the server lists, so a swipe whose send finishes while a reload is in flight can reappear until the next reload. Keep a log of the decisions made since the load started (sent or not) and apply that; extend the `applyPending` test.
+   - Silent fallback in `apps/client/src/sync/account.ts` (`SIGNED_OUT` handler): when Supabase drops a signed-in email session, the app moves to a new anonymous session without saying so. Remember that the session had an email and show a toast ("Signed out. Sign in again to keep syncing."), with a test.
+4. **Claude key and on-device summaries.** A keychain-backed Tauri command on Mac and iPhone, browser storage with a clear warning on web; decide the call path (the SDK in the webview, or a Rust-side request so the key never reaches JavaScript). Set a strict CSP first. Add a skippable "Connect Claude" onboarding step and a Settings entry, and validate the key with one cheap call. Run the summary spike on ~50 real articles (quality, tokens, cost).
+5. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
+6. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
 
 ### Known limitations
 

@@ -43,8 +43,9 @@ const LIST_OF_STATE: Partial<Record<ItemState, ListId>> = {
 }
 
 /**
- * Lists from the server with the decisions not sent yet applied on top. A swipe made while a
- * reload was in flight is missing from the server copy and must not come back.
+ * Lists from the server with the latest local decisions applied on top: the ones not sent yet,
+ * and the ones made while a reload was in flight (the server copy may predate them even once
+ * sent). Those swipes must not come back.
  */
 export function applyPending(
   lists: Record<ListId, string[]>,
@@ -66,12 +67,16 @@ export function applyPending(
 }
 
 let outbox: Outbox = read<Outbox>(OUTBOX_KEY) ?? {}
+/** One log per load in flight: every decision made since that load started, sent or not. */
+const loadLogs = new Set<Outbox>()
 let flushTimer: ReturnType<typeof setTimeout> | undefined
 let flushing: Promise<boolean> | null = null
 
 function enqueue(item: Item, state: ItemState | null): void {
   if (!supabase || !isUuid(item.id)) return
-  outbox = { ...outbox, [item.id]: { topicId: item.topicId, state, at: new Date().toISOString() } }
+  const entry = { topicId: item.topicId, state, at: new Date().toISOString() }
+  outbox = { ...outbox, [item.id]: entry }
+  for (const log of loadLogs) log[item.id] = entry
   write(OUTBOX_KEY, outbox)
   clearTimeout(flushTimer)
   flushTimer = setTimeout(() => void flushOutbox(), FLUSH_DELAY_MS)
@@ -169,6 +174,21 @@ export async function loadContent(): Promise<void> {
   const client = supabase
   if (!client) return
   const run = ++generation
+  // The server copy may predate any swipe made from here on, even one sent before it answers.
+  const log: Outbox = {}
+  loadLogs.add(log)
+  try {
+    await loadInto(client, run, log)
+  } finally {
+    loadLogs.delete(log)
+  }
+}
+
+async function loadInto(
+  client: NonNullable<typeof supabase>,
+  run: number,
+  log: Outbox,
+): Promise<void> {
   if (!(await flushOutbox())) return
 
   const topics: Topic[] = deckStore.getState().topics
@@ -200,12 +220,20 @@ export async function loadContent(): Promise<void> {
     items.push(item)
     server[listId].push(row.id)
   }
+  const decisions: Outbox = { ...outbox, ...log }
+  // A card swiped during the load may be missing from the fresh decks: keep the one on screen.
+  const current = deckStore.getState().items
+  const fresh = new Set(items.map((item) => item.id))
+  for (const id of Object.keys(decisions)) {
+    const item = current[id]
+    if (item && !fresh.has(id)) items.push(item)
+  }
   const unique = [...new Map(items.map((item) => [item.id, item])).values()]
   const known = new Set(unique.map((item) => item.id))
   // Swipes made while this load was in flight win over the server copy.
   const lists = applyPending(
     server,
-    Object.fromEntries(Object.entries(outbox).filter(([id]) => known.has(id))),
+    Object.fromEntries(Object.entries(decisions).filter(([id]) => known.has(id))),
   )
   deckStore.getState().setContent(unique, lists)
   write(CACHE_KEY, { items: unique, lists } satisfies Cache)
