@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canonicalUrl, keywordTopicId, normalizeUrl } from './url.ts'
+import { canonicalUrl, isWebUrl, keywordTopicId, normalizeUrl } from './url.ts'
 
 describe('canonicalUrl', () => {
   it('drops tracking parameters, fragments and www', () => {
@@ -16,6 +16,16 @@ describe('canonicalUrl', () => {
   it('rejects other schemes and garbage', () => {
     expect(canonicalUrl('mailto:me@example.com')).toBeNull()
     expect(canonicalUrl('not a url')).toBeNull()
+  })
+})
+
+describe('isWebUrl', () => {
+  it('accepts http(s) only', () => {
+    expect(isWebUrl('https://example.com/a')).toBe(true)
+    expect(isWebUrl('http://example.com')).toBe(true)
+    expect(isWebUrl('javascript:alert(1)')).toBe(false)
+    expect(isWebUrl('data:text/html,<p>x</p>')).toBe(false)
+    expect(isWebUrl('/relative')).toBe(false)
   })
 })
 

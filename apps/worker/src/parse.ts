@@ -1,4 +1,4 @@
-import type { ContentType } from '@readar/core'
+import { isWebUrl, type ContentType } from '@readar/core'
 import { parseFeed } from 'feedsmith'
 import { textFromHtml } from './text.ts'
 
@@ -160,6 +160,8 @@ export function parseEntries(body: string, sourceKind: string, baseUrl: string):
     } catch {
       continue
     }
+    // Only web links: a feed can carry javascript: or data: links that would run when opened.
+    if (!isWebUrl(url)) continue
     const title = text(item.title)
     if (!title) continue
     const fullBody = text(bodyHtml(item))

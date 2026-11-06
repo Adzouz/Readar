@@ -35,6 +35,16 @@ describe('parseEntries', () => {
     expect(entries[0]?.publishedAt?.toISOString()).toBe('2026-11-05T10:00:00.000Z')
   })
 
+  it('drops entries whose link is not http(s)', () => {
+    const feed = `<rss version="2.0"><channel><title>Bad</title>
+<item><title>Script</title><link>javascript:alert(document.cookie)</link></item>
+<item><title>Data</title><link>data:text/html,&lt;script&gt;x()&lt;/script&gt;</link></item>
+<item><title>Fine</title><link>https://example.com/ok</link></item>
+</channel></rss>`
+    const { entries } = parseEntries(feed, 'feed', 'https://example.com/feed.xml')
+    expect(entries.map((entry) => entry.url)).toEqual(['https://example.com/ok'])
+  })
+
   it('reads Atom entries and spots videos', () => {
     const [entry] = parseEntries(ATOM, 'feed', 'https://example.com/').entries
     expect(entry).toMatchObject({ type: 'video', author: 'Chan', title: 'Video' })

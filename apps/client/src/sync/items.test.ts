@@ -43,15 +43,19 @@ describe('toItem', () => {
     })
   })
 
+  it('refuses links that are not http(s)', () => {
+    expect(toItem(row({ url: 'javascript:alert(1)' }), { id: 'ai', name: 'AI' }, NOW)).toBeNull()
+  })
+
   it('falls back to the host and leaves unknown lengths empty', () => {
     const item = toItem(
       row({ source_name: null, reading_minutes: null, excerpt: null, coverage: 1 }),
       { id: 'ai', name: 'AI' },
       NOW,
     )
-    expect(item.source).toBe('example.com')
-    expect(item.length).toBe('')
-    expect(item.alsoCoveredBy).toBe(0)
-    expect(item.tldr).toMatch(/No preview/)
+    expect(item?.source).toBe('example.com')
+    expect(item?.length).toBe('')
+    expect(item?.alsoCoveredBy).toBe(0)
+    expect(item?.tldr).toMatch(/No preview/)
   })
 })

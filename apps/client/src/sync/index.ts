@@ -2,7 +2,7 @@
 // does nothing and the app runs on the device with sample cards.
 
 import { supabase } from '@/lib/supabase'
-import { useAccount, startSession } from './account'
+import { reconnect, setSessionLostHandler, startSession, useAccount } from './account'
 import {
   clearLocalContent,
   connectDeckEffects,
@@ -34,6 +34,26 @@ async function onAccountSwitch(): Promise<void> {
   await loadContent()
 }
 
+let signingOut = false
+let resuming: Promise<void> | null = null
+
+/**
+ * Gets a session back after starting offline or losing it, then catches up: local changes go up,
+ * fresh cards come down. Does nothing while a session exists.
+ */
+function resume(): Promise<void> {
+  resuming ??= (async () => {
+    if (useAccount.getState().userId) return
+    const userId = await reconnect()
+    if (!userId) return
+    await syncSetup()
+    await loadContent()
+  })().finally(() => {
+    resuming = null
+  })
+  return resuming
+}
+
 export async function startSync(): Promise<void> {
   if (!supabase) return
   captureAuthLink()
@@ -62,7 +82,12 @@ export async function startSync(): Promise<void> {
   }
   window.addEventListener('focus', refresh)
   document.addEventListener('visibilitychange', refresh)
-  window.addEventListener('online', () => quietly(flushOutbox().then(loadContent)))
+  window.addEventListener('online', () => {
+    quietly(useAccount.getState().userId ? flushOutbox().then(loadContent) : resume())
+  })
+  setSessionLostHandler(() => {
+    if (!signingOut) quietly(resume())
+  })
 
   if (!userId) return
   await syncSetup()
@@ -71,6 +96,7 @@ export async function startSync(): Promise<void> {
 
 /** Signs out and starts fresh on this device with a new anonymous session. */
 export async function signOut(): Promise<void> {
+  signingOut = true
   if (supabase) await supabase.auth.signOut({ scope: 'local' })
   clearLocalContent()
   for (const key of ['readar.setup', 'readar.sync']) {

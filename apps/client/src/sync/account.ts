@@ -46,11 +46,23 @@ export async function startSession(): Promise<string | null> {
   }
 }
 
+let listening = false
+let onSessionLost: (() => void) | null = null
+
+/** Called when Supabase drops the session (refresh token revoked or expired). */
+export const setSessionLostHandler = (handler: (() => void) | null): void => {
+  onSessionLost = handler
+}
+
 async function openSession(): Promise<string | null> {
   if (!supabase) return null
-  supabase.auth.onAuthStateChange((_event, session) => {
-    useAccount.setState(fromSession(session))
-  })
+  if (!listening) {
+    listening = true
+    supabase.auth.onAuthStateChange((event, session) => {
+      useAccount.setState(fromSession(session))
+      if (event === 'SIGNED_OUT') onSessionLost?.()
+    })
+  }
   try {
     const { data } = await supabase.auth.getSession()
     let session = data.session
@@ -66,6 +78,18 @@ async function openSession(): Promise<string | null> {
     useAccount.setState({ status: 'offline' })
     return null
   }
+}
+
+/**
+ * Tries again to get a session after starting offline or losing it. Returns the user id, or null
+ * while Supabase is still unreachable.
+ */
+export async function reconnect(): Promise<string | null> {
+  const current = useAccount.getState().userId
+  if (current) return current
+  if (!supabase) return null
+  useAccount.setState({ status: 'connecting' })
+  return openSession()
 }
 
 const message = (error: unknown): string =>

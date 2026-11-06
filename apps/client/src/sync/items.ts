@@ -1,3 +1,4 @@
+import { isWebUrl } from '@readar/core'
 import type { Item, Topic } from '@/deck/types'
 import type { ItemCardRow } from '@/lib/database'
 
@@ -48,12 +49,16 @@ function lengthOf(row: ItemCardRow): string {
 
 const NO_PREVIEW = 'No preview from the source yet. Open the original to read it.'
 
-/** A card from a Supabase row. Summaries replace the excerpt once Claude is connected. */
+/**
+ * A card from a Supabase row, or null when its link isn't http(s): such a card is never shown or
+ * opened. Summaries replace the excerpt once Claude is connected.
+ */
 export function toItem(
   row: ItemCardRow,
   topic: Pick<Topic, 'id' | 'name'>,
   now = Date.now(),
-): Item {
+): Item | null {
+  if (!isWebUrl(row.url)) return null
   const source = row.source_name ?? new URL(row.url).hostname.replace(/^www\./, '')
   return {
     id: row.id,

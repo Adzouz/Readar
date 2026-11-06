@@ -198,6 +198,8 @@ In order, for the next sessions:
 - Decks are newest first. Ranking waits for embeddings.
 - No Realtime yet: other devices' changes appear on focus (after 2 min) or on restart.
 - Email sign-in link: `<Site URL>/auth` offers "Open in the Readar app" (`readar://`, Tauri deep-link plugin) or the browser. The scheme only registers for the built, installed Mac app (not `pnpm app`), and Site URL is `http://localhost:1420` until the web app is hosted. iPhone gets universal links with the domain.
+- Links people add aren't limited yet: the worker fetches any host (including private network addresses, also after redirects) and `save_setup` has no cap on topics or links. Fix before hosting the web app or the worker.
+- A setup save that finishes after a newer local change marks it saved; quitting within 800 ms can lose that change on the next launch. Fix with a change counter.
 - Signing in to an account that already has a setup adopts that account; the anonymous session's lists stay behind.
 - In the Mac app, Share copies the link; browsers use Web Share. The native share sheet comes with the iPhone work.
 - The Tauri CSP is `null`. Tighten it, and allow the inline theme script in `index.html` by hash, before API keys land.
@@ -258,10 +260,10 @@ Owner:
 
 - Supabase project (in progress). Settings:
   - Region close to you (EU if you're in Europe).
-  - Authentication → Sign In / Providers → Email: on. Edit the magic-link email template so it shows the one-time code `{{ .Token }}`.
+  - Authentication → Sign In / Providers → Email: on. Custom SMTP (Resend) is required to edit email templates; paste `supabase/templates/sign-in.html` into "Magic link" and "Confirm signup". Site URL: `http://localhost:1420` until the web app is hosted.
   - Authentication → enable anonymous sign-ins.
-  - Keys go in local env files, never in chat or git: `apps/client/.env.local` gets `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; the worker gets `SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `DATABASE_URL`.
-  - Extensions (pgvector, pgmq) are enabled by our migrations.
+  - Keys go in local env files, never in chat or git: `apps/client/.env.local` gets `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; the repo root `.env.local` gets `DATABASE_URL` (worker and `pnpm db:push`) and optionally `YOUTUBE_API_KEY`.
+  - pgvector is enabled by our migrations (pgmq isn't used, see §8).
 - Claude Console API key, for your own use and the Phase 0 summary check.
 - Google Cloud project with a YouTube Data API key (Phase 1).
 - Apple Developer Program for TestFlight; a free Apple ID can run builds on your own iPhone for 7 days at a time.

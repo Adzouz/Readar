@@ -57,6 +57,19 @@ export function canonicalUrl(input: string, base?: string): string | null {
   return url.href
 }
 
+/**
+ * True for http(s) links only. Feeds can carry `javascript:` or `data:` links, which must never be
+ * stored or opened.
+ */
+export function isWebUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value)
+    return protocol === 'https:' || protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
 /** Turns what the user typed into an http(s) link, adding https:// when missing. */
 export function normalizeUrl(input: string): string | null {
   const trimmed = input.trim()

@@ -34,7 +34,36 @@ const write = (key: string, value: unknown): void => {
 // --- Outbox: decisions waiting to reach Supabase ---------------------------------------------
 
 /** Latest decision per item. `state: null` sends the item back to its deck. */
-type Outbox = Record<string, { topicId: string; state: ItemState | null; at: string }>
+export type Outbox = Record<string, { topicId: string; state: ItemState | null; at: string }>
+
+const LIST_OF_STATE: Partial<Record<ItemState, ListId>> = {
+  liked: 'liked',
+  later: 'later',
+  dismissed: 'dismissed',
+}
+
+/**
+ * Lists from the server with the decisions not sent yet applied on top. A swipe made while a
+ * reload was in flight is missing from the server copy and must not come back.
+ */
+export function applyPending(
+  lists: Record<ListId, string[]>,
+  pending: Outbox,
+): Record<ListId, string[]> {
+  const ids = Object.keys(pending)
+  if (!ids.length) return lists
+  const touched = new Set(ids)
+  const next: Record<ListId, string[]> = {
+    liked: lists.liked.filter((id) => !touched.has(id)),
+    later: lists.later.filter((id) => !touched.has(id)),
+    dismissed: lists.dismissed.filter((id) => !touched.has(id)),
+  }
+  for (const [id, entry] of Object.entries(pending)) {
+    const listId = entry.state ? LIST_OF_STATE[entry.state] : undefined
+    if (listId) next[listId].push(id)
+  }
+  return next
+}
 
 let outbox: Outbox = read<Outbox>(OUTBOX_KEY) ?? {}
 let flushTimer: ReturnType<typeof setTimeout> | undefined
@@ -97,15 +126,10 @@ export function flushOutbox(): Promise<boolean> {
 /** Queues every card in the local lists, to carry them into a newly signed-in account. */
 export function enqueueLists(): void {
   const { lists, items } = deckStore.getState()
-  const STATE: Record<ListId, ItemState> = {
-    liked: 'liked',
-    later: 'later',
-    dismissed: 'dismissed',
-  }
   for (const listId of Object.keys(lists) as ListId[]) {
     for (const id of lists[listId]) {
       const item = items[id]
-      if (item) enqueue(item, STATE[listId])
+      if (item) enqueue(item, listId)
     }
   }
 }
@@ -156,7 +180,7 @@ export async function loadContent(): Promise<void> {
         p_limit: DECK_LIMIT,
       })
       if (error) throw error
-      return (data ?? []).map((row) => toItem(row, topic, now))
+      return (data ?? []).flatMap((row) => toItem(row, topic, now) ?? [])
     }),
   )
   const { data: listed, error } = await client.rpc('list_items')
@@ -165,17 +189,24 @@ export async function loadContent(): Promise<void> {
 
   const names = new Map(topics.map((topic) => [topic.id, topic.name]))
   const items = decks.flat()
-  const lists: Record<ListId, string[]> = { liked: [], later: [], dismissed: [] }
-  const LIST: Record<string, ListId> = { liked: 'liked', later: 'later', dismissed: 'dismissed' }
+  const server: Record<ListId, string[]> = { liked: [], later: [], dismissed: [] }
   for (const row of listed ?? []) {
-    const listId = LIST[row.state]
+    const listId = LIST_OF_STATE[row.state]
     if (!listId) continue
     // A card shown in a list but also in a deck (another device decided it) belongs to the list.
     const name = names.get(row.topic_id) ?? row.topic_id
-    items.push(toItem(row, { id: row.topic_id, name }, now))
-    lists[listId].push(row.id)
+    const item = toItem(row, { id: row.topic_id, name }, now)
+    if (!item) continue
+    items.push(item)
+    server[listId].push(row.id)
   }
   const unique = [...new Map(items.map((item) => [item.id, item])).values()]
+  const known = new Set(unique.map((item) => item.id))
+  // Swipes made while this load was in flight win over the server copy.
+  const lists = applyPending(
+    server,
+    Object.fromEntries(Object.entries(outbox).filter(([id]) => known.has(id))),
+  )
   deckStore.getState().setContent(unique, lists)
   write(CACHE_KEY, { items: unique, lists } satisfies Cache)
   lastLoad = Date.now()
