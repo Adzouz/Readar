@@ -102,13 +102,16 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
         icon={<TopicIcon topic={topic} size="lg" />}
         title={topic.name}
         subtitle={
+          // The count to review sits next to the progress bar on the right.
           remaining
-            ? `${topic.keyword ? 'Keyword watch · ' : ''}${remaining} new since this morning`
+            ? topic.keyword
+              ? 'Keyword watch'
+              : undefined
             : total
               ? 'All caught up'
               : `${sourceCount} ${sourceCount === 1 ? 'source' : 'sources'} · nothing fetched yet`
         }
-        progress={total ? (total - remaining) / total : undefined}
+        progress={{ done: total - remaining, total }}
       />
       <div className="flex min-h-[380px] flex-1 items-center justify-center">
         {remaining ? (
@@ -117,7 +120,7 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
           <div className="grid h-full">
             <Empty
               title="No articles yet"
-              body={`Readar will pull new articles from your ${sourceCount} ${sourceCount === 1 ? 'source' : 'sources'} here once fetching is switched on.`}
+              body={`Readar is checking your ${sourceCount} ${sourceCount === 1 ? 'source' : 'sources'}. New articles show up here within a few minutes.`}
               action={
                 <button
                   type="button"
@@ -133,7 +136,7 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
           <div className="grid h-full">
             <Empty
               title="All caught up"
-              body="Readar checks your sources again in 42 min."
+              body="New articles show up here as your sources publish them."
               action={
                 canUndo ? (
                   <button

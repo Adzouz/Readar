@@ -1,6 +1,6 @@
 import { Check, Plus, Search, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { CATALOG, type CatalogTopic } from '@/data/catalog'
+import { CATALOG, type CatalogTopic } from '@readar/core'
 import { cn } from '@/lib/cn'
 import { Frame, PrimaryButton, QuietButton } from './Frame'
 import { useSetup } from './store'

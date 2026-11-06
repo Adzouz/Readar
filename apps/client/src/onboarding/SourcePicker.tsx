@@ -1,6 +1,6 @@
 import { Link2, Mic, Play, Plus, Rss, Search, X, type LucideIcon } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import type { CatalogSource, SourceKind } from '@/data/catalog'
+import type { CatalogSource, SourceKind } from '@readar/core'
 import { TopicIcon } from '@/deck/TopicIcon'
 import type { Topic } from '@/deck/types'
 import { cn } from '@/lib/cn'
@@ -12,6 +12,7 @@ const KIND: Record<SourceKind, { label: string; Icon: LucideIcon }> = {
   youtube: { label: 'YouTube', Icon: Play },
   podcast: { label: 'Podcast', Icon: Mic },
   search: { label: 'Search', Icon: Search },
+  link: { label: 'Your link', Icon: Link2 },
 }
 
 /** Onboarding step 3: suggested sources per followed topic, switchable, plus the user's links. */

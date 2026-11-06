@@ -1,0 +1,25 @@
+{
+  "name": "@readar/worker",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Fetches the sources people follow and writes new items to Supabase.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.ts",
+    "once": "node src/main.ts --once",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@readar/core": "workspace:*",
+    "feedsmith": "^3.0.1",
+    "linkedom": "^0.18.15",
+    "postgres": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

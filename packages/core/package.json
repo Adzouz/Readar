@@ -1,0 +1,18 @@
+{
+  "name": "@readar/core",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Domain types, the topic catalog and URL helpers shared by the client and the worker.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

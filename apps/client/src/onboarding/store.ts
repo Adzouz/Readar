@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { CATALOG, keywordSources, type CatalogSource } from '@/data/catalog'
+import {
+  CATALOG,
+  keywordSources,
+  keywordTopicId,
+  normalizeUrl,
+  type CatalogSource,
+} from '@readar/core'
 import type { Topic } from '@/deck/types'
 
 export type SetupStep = 'style' | 'topics' | 'sources' | 'done'
@@ -42,27 +48,7 @@ export interface SetupState {
 
 export const KEYWORD_HUE = '#7A5AF8'
 
-export const keywordTopicId = (keyword: string): string =>
-  `kw-${keyword
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-+|-+$/g, '')}`
-
-/** Turns what the user typed into an http(s) link, adding https:// when missing. */
-export function normalizeUrl(input: string): string | null {
-  const trimmed = input.trim()
-  if (!trimmed || /\s/.test(trimmed)) return null
-  const withScheme = /^[a-z][a-z\d+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
-  try {
-    const url = new URL(withScheme)
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
-    if (!url.hostname.includes('.')) return null
-    return url.href
-  } catch {
-    return null
-  }
-}
+export { keywordTopicId, normalizeUrl }
 
 const toggle = (list: string[], id: string): string[] =>
   list.includes(id) ? list.filter((item) => item !== id) : [...list, id]

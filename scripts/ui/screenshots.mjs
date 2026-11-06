@@ -4,7 +4,8 @@ import { mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
 
-const base = process.argv[2] ?? 'http://localhost:1420'
+// `?offline` keeps the run off Supabase: sample cards, no throwaway anonymous users.
+const base = process.argv[2] ?? 'http://localhost:1420/?offline'
 const outDir = fileURLToPath(new URL('../../.screenshots/', import.meta.url))
 await mkdir(outDir, { recursive: true })
 

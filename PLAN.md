@@ -163,6 +163,8 @@ Tooling, same as PRism: pnpm workspaces, TypeScript, React 19, Vite, Tailwind 4,
 
 Row Level Security on every user-owned table (`user_id = auth.uid()`).
 
+As built (6 Nov): no `categories` table yet (the catalog has no category level) and no `user_topic_taste` (needs embeddings). Extra tables: `item_sources` (the same article from several sources) and `item_aliases` (Google News wrapper links). Clients never read shared tables directly. They call the security-definer functions `deck` and `list_items`, so the links a user adds stay private. pgmq is not used: the worker claims due sources with `for update skip locked`, which is enough for one worker.
+
 ## 9. Platforms and distribution (MVP)
 
 - Tauri 2 targets macOS and iOS; the same React client builds as the web app. Bundle id `io.github.adzouz.readar` (same pattern as PRism).
@@ -183,16 +185,20 @@ Row Level Security on every user-owned table (`user_id = auth.uid()`).
 
 In order, for the next sessions:
 
-1. **Supabase foundation.** Add `@supabase/supabase-js` with a client that reads `apps/client/.env.local` and keeps the app working when the values are missing. Move the catalog into `packages/core` so the client, the worker and the database seed share it. In `packages/db`: the schema from §8, migrations, RLS policies plus explicit grants, and the pgvector and pgmq extensions (Drizzle migrations or the Supabase CLI; migrations need the database URL in a gitignored env file). Anonymous session on first launch, then an email one-time code to keep the account. Sync the setup and the lists, with local storage as a cache.
-2. **Fetch worker and real articles.** `apps/worker` (Node 26, TypeScript): schedule loop, conditional GET, RSS/Atom parsing, URL normalization and dedupe, Readability text extraction, writes to `items`. Google News links need decoding; YouTube channel feeds fall back to the Data API; Hacker News comes from hnrss. The client swaps sample cards for real items; embeddings and ranking follow.
+1. **Supabase foundation (done 6 Nov; migration applied).** `packages/core` holds the catalog, URL helpers and shared types. Schema, RLS, grants and client functions: `supabase/migrations/` (Supabase CLI, plain SQL). The client (`apps/client/src/sync`) starts an anonymous session, syncs the setup (`get_setup` / `save_setup`), loads decks and lists (`deck`, `list_items`), queues swipes in an outbox (`user_items`), and offers email-code sign-in in Settings. Checked end to end in the browser: anonymous session, setup saved, real decks, a like saved and reloaded from the server. Left: email sign-in on two devices.
+2. **Fetch worker and real articles (done 6 Nov, runs locally).** `apps/worker` runs locally (`pnpm worker`, or `pnpm worker:once`). It syncs catalog, keyword and link sources, claims due sources, uses conditional GET, parses with feedsmith, decodes Google News links, falls back to the YouTube Data API when `YOUTUBE_API_KEY` is set, dedupes on the canonical URL hash, and extracts text with Readability while honoring robots.txt. First pass: 160 items from 13 sources in 21 s. Left: embeddings and ranking (pick the embedding model, §12) and a host (§12).
 3. **Claude key and on-device summaries.** A keychain-backed Tauri command on Mac and iPhone, browser storage with a clear warning on web; decide the call path (the SDK in the webview, or a Rust-side request so the key never reaches JavaScript). Set a strict CSP first. Add a skippable "Connect Claude" onboarding step and a Settings entry, and validate the key with one cheap call. Run the summary spike on ~50 real articles (quality, tokens, cost).
 4. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
 5. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
 
 ### Known limitations
 
-- Cards are fictional samples, only for AI, Design, Space and a "Strapi" keyword watch; other topics show "No articles yet".
-- Lists live in memory and reset on reload until sync lands.
+- Without Supabase settings, the app falls back to the fictional sample cards (AI, Design, Space, "Strapi").
+- Cards show the source's excerpt until Claude summaries land: no key points yet, signal fixed at 2, no article images.
+- Decks are newest first. Ranking waits for embeddings.
+- No Realtime yet: other devices' changes appear on focus (after 2 min) or on restart.
+- Email sign-in link: `<Site URL>/auth` offers "Open in the Readar app" (`readar://`, Tauri deep-link plugin) or the browser. The scheme only registers for the built, installed Mac app (not `pnpm app`), and Site URL is `http://localhost:1420` until the web app is hosted. iPhone gets universal links with the domain.
+- Signing in to an account that already has a setup adopts that account; the anonymous session's lists stay behind.
 - In the Mac app, Share copies the link; browsers use Web Share. The native share sheet comes with the iPhone work.
 - The Tauri CSP is `null`. Tighten it, and allow the inline theme script in `index.html` by hash, before API keys land.
 - The iOS build stops with "iOS platform not installed" until Xcode's iOS platform is downloaded.
