@@ -224,16 +224,22 @@ async function loadInto(
   // A card swiped during the load may be missing from the fresh decks: keep the one on screen.
   const current = deckStore.getState().items
   const fresh = new Set(items.map((item) => item.id))
-  for (const id of Object.keys(decisions)) {
+  for (const [id, entry] of Object.entries(decisions)) {
     const item = current[id]
-    if (item && !fresh.has(id)) items.push(item)
+    if (item && !fresh.has(id) && entry.state !== 'read') items.push(item)
   }
-  const unique = [...new Map(items.map((item) => [item.id, item])).values()]
+  // A card marked read belongs to no list and no deck, even if the server still lists it.
+  const unique = [...new Map(items.map((item) => [item.id, item])).values()].filter(
+    (item) => decisions[item.id]?.state !== 'read',
+  )
   const known = new Set(unique.map((item) => item.id))
   // Swipes made while this load was in flight win over the server copy.
   const lists = applyPending(
     server,
-    Object.fromEntries(Object.entries(decisions).filter(([id]) => known.has(id))),
+    // A read only removes the card from its list, so it applies even without the card.
+    Object.fromEntries(
+      Object.entries(decisions).filter(([id, entry]) => known.has(id) || entry.state === 'read'),
+    ),
   )
   deckStore.getState().setContent(unique, lists)
   write(CACHE_KEY, { items: unique, lists } satisfies Cache)

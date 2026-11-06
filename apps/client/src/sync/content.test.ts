@@ -80,4 +80,33 @@ describe('loadContent', () => {
     expect(lists.liked).toEqual([ID])
     expect(queues.ai).toEqual([])
   })
+
+  it('keeps a card marked read during the reload out of its list and its deck', async () => {
+    fake.rpc.mockReset()
+    let answerLists: () => void = () => {}
+    fake.rpc.mockImplementation(async (name: string) => {
+      if (name === 'deck') return { data: [], error: null }
+      // The server still lists the card in Read later.
+      return new Promise((resolve) => {
+        const later: ListItemRow = { ...row, topic_id: 'ai', state: 'later', decided_at: at }
+        answerLists = () => resolve({ data: [later], error: null })
+      })
+    })
+    const topic = { id: 'ai', name: 'AI', emoji: '🤖', hue: '#000000' }
+    deckStore
+      .getState()
+      .setContent([toItem(row, topic)!], { liked: [], later: [ID], dismissed: [] })
+
+    const loading = loadContent()
+    await vi.waitFor(() => expect(fake.rpc).toHaveBeenCalledWith('list_items'))
+    deckStore.getState().markRead(ID)
+    expect(await flushOutbox()).toBe(true)
+
+    answerLists()
+    await loading
+
+    const { lists, queues } = deckStore.getState()
+    expect(lists.later).toEqual([])
+    expect(queues.ai).toEqual([])
+  })
 })
