@@ -1,6 +1,6 @@
 # Readar — product and build plan
 
-> Status: Phase 0 in progress (6 Nov 2026). Where things stand and what to do next: [HANDOFF.md](HANDOFF.md).
+> Status: Phase 0 nearly done (6 Nov 2026). What comes next, in order: [§11 Next up](#next-up). Known gaps: [§11 Known limitations](#known-limitations).
 > Repo: `git@github.com:Adzouz/Readar.git`. The local folder is still named `sonar/`, the working title.
 > Visual brief with a clickable deck prototype: https://claude.ai/artifact/NuKHhwoXB6bxKiPjfpKQNJ (source: [docs/brief.html](docs/brief.html)).
 
@@ -43,6 +43,16 @@ After the MVP, the public launch adds: Free / Pro / Pro + own key plans, Readar 
 | Reading           | Default browser (Mac, web), Safari view (iPhone)                                                                           |                                                        |
 | Not possible      | Reddit: RSS ends 2026-11-13, new API requests closed 2026-10-31                                                            |                                                        |
 | Not allowed       | Claude.ai login, Free/Pro/Max/Ultra plan credentials, or routing summaries through a user's Claude Code (Anthropic policy) |                                                        |
+
+### Why
+
+- **Readar, not Sonar:** "Sonar" is crowded on the App Store and used by Perplexity's API and SonarQube. No App Store app uses "Readar"; getreadar.com and readar.news were free on 6 Nov (readar.app and readar.com are taken).
+- **Tauri 2 + React:** one codebase for three targets, with the React toolbox the owner already uses in PRism. Capacitor around the same UI is the fallback if Tauri's iOS support falls short.
+- **Supabase:** Postgres with pgvector for ranking, plus Auth, Realtime and Queues in one place. Project settings: Data API on, new tables not exposed automatically (migrations grant access explicitly), automatic RLS on.
+- **Own Claude API key, kept on the device:** Anthropic forbids third-party apps from using Claude.ai logins or subscription credentials, and one person's key must never serve someone else. Keeping the key on the device also avoids storing it on a server.
+- **Claude Sonnet 5.5:** the owner's pick over Opus 5.5 (better nuance, twice the price) and Haiku 5.5 (far cheaper, less nuance). Don't change it without asking.
+- **Three themes, look and feel only:** the experience should suit each person's personality, without three different flows to build and test.
+- **RSS first:** free news APIs arrive late or forbid commercial use, and Reddit closed its feeds and API.
 
 ## 4. Experience
 
@@ -168,6 +178,24 @@ Row Level Security on every user-owned table (`user_id = auth.uid()`).
 - Extracted article text kept only as long as needed to summarize.
 
 ## 11. Roadmap
+
+### Next up
+
+In order, for the next sessions:
+
+1. **Supabase foundation.** Add `@supabase/supabase-js` with a client that reads `apps/client/.env.local` and keeps the app working when the values are missing. Move the catalog into `packages/core` so the client, the worker and the database seed share it. In `packages/db`: the schema from §8, migrations, RLS policies plus explicit grants, and the pgvector and pgmq extensions (Drizzle migrations or the Supabase CLI; migrations need the database URL in a gitignored env file). Anonymous session on first launch, then an email one-time code to keep the account. Sync the setup and the lists, with local storage as a cache.
+2. **Fetch worker and real articles.** `apps/worker` (Node 26, TypeScript): schedule loop, conditional GET, RSS/Atom parsing, URL normalization and dedupe, Readability text extraction, writes to `items`. Google News links need decoding; YouTube channel feeds fall back to the Data API; Hacker News comes from hnrss. The client swaps sample cards for real items; embeddings and ranking follow.
+3. **Claude key and on-device summaries.** A keychain-backed Tauri command on Mac and iPhone, browser storage with a clear warning on web; decide the call path (the SDK in the webview, or a Rust-side request so the key never reaches JavaScript). Set a strict CSP first. Add a skippable "Connect Claude" onboarding step and a Settings entry, and validate the key with one cheap call. Run the summary spike on ~50 real articles (quality, tokens, cost).
+4. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
+5. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
+
+### Known limitations
+
+- Cards are fictional samples, only for AI, Design, Space and a "Strapi" keyword watch; other topics show "No articles yet".
+- Lists live in memory and reset on reload until sync lands.
+- In the Mac app, Share copies the link; browsers use Web Share. The native share sheet comes with the iPhone work.
+- The Tauri CSP is `null`. Tighten it, and allow the inline theme script in `index.html` by hash, before API keys land.
+- The iOS build stops with "iOS platform not installed" until Xcode's iOS platform is downloaded.
 
 ### Phase 0 — Foundations (now)
 

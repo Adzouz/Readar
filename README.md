@@ -4,7 +4,7 @@ Pick the topics you care about. Readar watches blogs, news sites, YouTube and po
 
 One React codebase for the Mac app, the iPhone app and the web, in three styles people choose from: Native Glass, Editorial Calm and Playful Deck.
 
-> **Status: MVP in progress (Phase 0).** The deck, the three styles and onboarding work with sample cards. Real articles, sign-in and sync, and Claude summaries come next. [HANDOFF.md](HANDOFF.md) says where things stand; [PLAN.md](PLAN.md) holds the product plan and decisions.
+> **Status: MVP in progress (Phase 0).** The deck, the three styles and onboarding work with sample cards. Real articles, sign-in and sync, and Claude summaries come next. [PLAN.md](PLAN.md) holds the product plan, the decisions and what comes next.
 
 ## What works today
 
@@ -75,8 +75,7 @@ apps/client/          React app shared by Mac, iPhone and web (Vite)
   src-tauri/          Tauri 2 shell for macOS and iOS
 scripts/              Feed health check and UI checks
 docs/brief.html       Source of the product brief page
-PLAN.md               Product and build plan
-HANDOFF.md            Current state and next steps
+PLAN.md               Product and build plan, next steps, known limitations
 AGENTS.md             Conventions for contributors and coding agents
 ```
 

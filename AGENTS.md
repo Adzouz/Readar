@@ -2,7 +2,7 @@
 
 Guide for coding agents and contributors working on Readar.
 
-**Start here:** [HANDOFF.md](HANDOFF.md) has the current state, known issues and the ordered next steps. [PLAN.md](PLAN.md) has the product decisions; read it before changing behavior.
+**Start here:** [PLAN.md](PLAN.md) has the decisions and why (§3), what comes next in order and the known limitations (§11). Read it before changing behavior.
 
 ## Layout
 
@@ -71,3 +71,7 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 
 - The owner's shell has an RTK hook that rewrites some commands (`curl`, `grep`, `cat`, `ls`) and filters their output. Use `rtk proxy <command>` for raw output. Don't pipe `curl` into `sh`: download to a file first. If `pnpm lint` prints "Linter process terminated abnormally", run `rtk proxy ./node_modules/.bin/oxlint --deny-warnings .` to see the real result.
 - Claude Code memory for this project is keyed to the folder path (`…/apps/sonar`); renaming the folder starts a fresh memory.
+
+## Session handoffs
+
+Handoff documents never go in this repo. Follow the owner's handoff rules ([mattpocock/skills, productivity/handoff](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)): write the document to the OS temp directory (`$TMPDIR`, else `/tmp`), include a "suggested skills" section, reference PLAN.md, commits and other artifacts by path or URL instead of copying them, and redact secrets and personal information. Anything that should outlive the session belongs in PLAN.md or this file instead.
