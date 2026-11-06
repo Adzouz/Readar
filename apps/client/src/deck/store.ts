@@ -1,6 +1,7 @@
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { SAMPLE_ITEMS } from '@/data/sample'
+import { supabase } from '@/lib/supabase'
 import {
   LIST_FOR_ACTION,
   type Action,
@@ -13,6 +14,20 @@ import {
 export interface DeckData {
   topics: Topic[]
   items: Item[]
+}
+
+/** Where decisions go besides the store (Supabase sync). Set once at start-up. */
+export interface DeckEffects {
+  decided: (item: Item, action: Action) => void
+  /** The item went back to its deck (undo, restore). */
+  reverted: (item: Item) => void
+  read: (item: Item) => void
+}
+
+let effects: DeckEffects | null = null
+
+export const setDeckEffects = (next: DeckEffects | null): void => {
+  effects = next
 }
 
 export interface DeckState {
@@ -37,6 +52,11 @@ export interface DeckState {
   toggleExpanded: () => void
   /** Replaces the followed topics (after onboarding or an edit). Keeps lists and history. */
   load: (topics: Topic[]) => void
+  /**
+   * Replaces the cards and lists with fresh ones (from Supabase or the local cache). Cards the
+   * undo history still points to are kept so ⌘Z keeps working.
+   */
+  setContent: (items: Item[], lists: Record<ListId, string[]>) => void
 }
 
 const NO_LISTS: Record<ListId, string[]> = { liked: [], later: [], dismissed: [] }
@@ -89,7 +109,9 @@ export function createDeckStore(data: DeckData) {
         history: [...history, { action, itemId }],
         expanded: false,
       })
-      return items[itemId]
+      const item = items[itemId]
+      if (item) effects?.decided(item, action)
+      return item
     },
 
     undo: () => {
@@ -109,6 +131,7 @@ export function createDeckStore(data: DeckData) {
         view: followed ? { kind: 'topic', id: item.topicId } : view,
         expanded: false,
       })
+      effects?.reverted(item)
       return item
     },
 
@@ -124,23 +147,29 @@ export function createDeckStore(data: DeckData) {
           : queues,
         history: history.filter((entry) => entry.itemId !== itemId),
       })
+      effects?.reverted(item)
     },
 
     markRead: (itemId) => {
-      const { lists, history } = get()
+      const { lists, history, items } = get()
       if (!lists.later.includes(itemId)) return
       set({
         lists: { ...lists, later: lists.later.filter((id) => id !== itemId) },
         history: history.filter((entry) => entry.itemId !== itemId),
       })
+      const item = items[itemId]
+      if (item) effects?.read(item)
     },
 
     select: (view) => set({ view, expanded: false }),
     toggleExpanded: () => set((state) => ({ expanded: !state.expanded })),
 
     load: (topics) => {
-      const { items, lists, view } = get()
-      const keepView = view.kind === 'list' || topics.some((topic) => topic.id === view.id)
+      const { items, lists, view, topics: previous } = get()
+      // The first load replaces the start-up fallback (Liked) with the first topic.
+      const keepView =
+        (view.kind === 'list' && previous.length > 0) ||
+        topics.some((topic) => topic.id === view.id)
       set({
         topics,
         ...deal(topics, items, lists),
@@ -148,13 +177,25 @@ export function createDeckStore(data: DeckData) {
         expanded: false,
       })
     },
+
+    setContent: (fresh, lists) => {
+      const { items, history, topics } = get()
+      const dealt: Record<string, Item> = Object.fromEntries(fresh.map((item) => [item.id, item]))
+      // Cards only the undo history points to stay reachable but don't go back in a deck.
+      const next: Record<string, Item> = { ...dealt }
+      for (const entry of history) {
+        const kept = items[entry.itemId]
+        if (kept && !next[kept.id]) next[kept.id] = kept
+      }
+      set({ items: next, lists, ...deal(topics, dealt, lists) })
+    },
   }))
 }
 
 /**
- * The app's deck. Topics come from the user's setup (see onboarding/connectDeck); cards are
- * sample data until the fetch worker and Supabase are wired (Phase 1).
+ * The app's deck. Topics come from the user's setup (see onboarding/connectDeck). Cards come
+ * from Supabase (see sync/content); without Supabase settings the app shows sample cards.
  */
-export const deckStore = createDeckStore({ topics: [], items: SAMPLE_ITEMS })
+export const deckStore = createDeckStore({ topics: [], items: supabase ? [] : SAMPLE_ITEMS })
 
 export const useDeck = <T>(selector: (state: DeckState) => T): T => useStore(deckStore, selector)

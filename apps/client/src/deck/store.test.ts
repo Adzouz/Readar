@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDeckStore } from './store'
+import { createDeckStore, setDeckEffects } from './store'
 import type { Item, Topic } from './types'
 
 const topics: Topic[] = [
@@ -98,5 +98,39 @@ describe('deck store', () => {
     deck.getState().markRead('a')
     expect(deck.getState().lists.later).toEqual([])
     expect(deck.getState().undo()).toBeUndefined()
+  })
+
+  it('setContent swaps cards and lists but keeps cards the undo history needs', () => {
+    const deck = setup()
+    deck.getState().decide('like')
+    deck.getState().setContent([item('d', 't1')], { liked: [], later: ['d'], dismissed: [] })
+    const state = deck.getState()
+    expect(Object.keys(state.items).sort()).toEqual(['a', 'd'])
+    expect(state.queues).toEqual({ t1: [], t2: [] })
+    expect(state.lists.later).toEqual(['d'])
+    expect(deck.getState().undo()?.id).toBe('a')
+  })
+
+  it('reports decisions, undos and reads to the effects', () => {
+    const calls: string[] = []
+    setDeckEffects({
+      decided: (entry, action) => calls.push(`${action}:${entry.id}`),
+      reverted: (entry) => calls.push(`revert:${entry.id}`),
+      read: (entry) => calls.push(`read:${entry.id}`),
+    })
+    const deck = setup()
+    deck.getState().decide('later')
+    deck.getState().markRead('a')
+    deck.getState().decide('nope')
+    deck.getState().restore('b')
+    setDeckEffects(null)
+    expect(calls).toEqual(['later:a', 'read:a', 'nope:b', 'revert:b'])
+  })
+
+  it('the first load opens the first topic instead of the start-up list', () => {
+    const deck = createDeckStore({ topics: [], items: [item('a', 't1')] })
+    expect(deck.getState().view).toEqual({ kind: 'list', id: 'liked' })
+    deck.getState().load(topics)
+    expect(deck.getState().view).toEqual({ kind: 'topic', id: 't1' })
   })
 })

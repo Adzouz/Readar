@@ -1,8 +1,9 @@
 // Starter catalog for onboarding: topics with suggested sources.
 // Every feed is checked with `pnpm check:feeds` before it ships; drop or fix any that fail.
-// This file is standalone (no imports) so Node can run the checker against it directly.
+// Shared by the client (onboarding), the worker (sources to fetch) and `pnpm check:feeds`.
 
-export type SourceKind = 'feed' | 'youtube' | 'podcast' | 'search'
+/** `link` is a page or site a user added; the worker looks for its feed. */
+export type SourceKind = 'feed' | 'youtube' | 'podcast' | 'search' | 'link'
 
 export interface CatalogSource {
   id: string

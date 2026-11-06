@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Onboarding } from './onboarding/Onboarding'
 import { useSetup } from './onboarding/store'
+import { AuthLinkPrompt } from './shell/AuthLinkPrompt'
 import { Shell } from './shell/Shell'
 import { ThemeScope } from './theme/ThemeScope'
 import { useTheme } from './theme/store'
@@ -20,6 +21,7 @@ export function App() {
   return (
     <ThemeScope style={style} mode={mode} className="h-full">
       {step === 'done' ? <Shell /> : <Onboarding />}
+      <AuthLinkPrompt />
     </ThemeScope>
   )
 }

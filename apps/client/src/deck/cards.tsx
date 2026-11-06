@@ -32,7 +32,7 @@ function GlassCard({ item, expanded }: CardProps) {
           {item.title}
         </h2>
         <p className="text-[15px] leading-relaxed">
-          <AiBadge />
+          {item.summarized && <AiBadge />}
           {item.tldr}
         </p>
         {expanded && <Points points={item.points} className="list-disc pl-5" />}
@@ -46,7 +46,7 @@ function EditorialCard({ item, expanded }: CardProps) {
   return (
     <article className="flex h-full flex-col gap-3 overflow-y-auto rounded-card border border-line bg-surface px-7 pb-6 pt-7 shadow-card">
       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
-        {item.source} · {TYPE_LABEL[item.type]} · {item.length}
+        {dots(item.source, TYPE_LABEL[item.type], item.length)}
       </p>
       <h2 className="font-display text-[27px] leading-[1.14] font-semibold text-balance">
         {item.title}
@@ -75,7 +75,7 @@ function PlayfulCard({ item, topic, expanded }: CardProps) {
       </span>
       <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col gap-2 overflow-y-auto bg-linear-to-t from-black/60 via-black/30 to-transparent p-6 pt-16">
         <span className="self-start rounded-full bg-white/25 px-2.5 py-1 text-[11.5px] font-semibold backdrop-blur">
-          {TYPE_LABEL[item.type]} · {item.length}
+          {dots(TYPE_LABEL[item.type], item.length)}
         </span>
         <h2 className="font-display text-[25px] leading-[1.05] font-extrabold text-balance">
           {item.title}
@@ -85,13 +85,14 @@ function PlayfulCard({ item, topic, expanded }: CardProps) {
         ) : (
           <p className="text-[14.5px] leading-snug opacity-95">{item.tldr}</p>
         )}
-        <p className="text-[12px] opacity-85">
-          {item.source} · {item.age}
-        </p>
+        <p className="text-[12px] opacity-85">{dots(item.source, item.age)}</p>
       </div>
     </article>
   )
 }
+
+/** Joins the parts that have a value with " · ". */
+const dots = (...parts: string[]): string => parts.filter(Boolean).join(' · ')
 
 const GLYPHS = { video: Play, thread: MessageCircle, podcast: Mic } as const
 
@@ -107,7 +108,7 @@ function Thumb({ item, className }: { item: Item; className?: string }) {
           <Glyph size={22} fill={item.type === 'video' ? 'currentColor' : 'none'} />
         </span>
       )}
-      {item.type === 'video' && (
+      {item.type === 'video' && item.length && (
         <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[11.5px] text-white tabular-nums">
           {item.length}
         </span>
@@ -122,9 +123,7 @@ function Meta({ item }: { item: Item }) {
       <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-ink">
         {TYPE_LABEL[item.type]}
       </span>
-      <span>
-        {item.source} · {item.age} · {item.length}
-      </span>
+      <span>{dots(item.source, item.age, item.length)}</span>
       <Signal level={item.signal} />
     </div>
   )

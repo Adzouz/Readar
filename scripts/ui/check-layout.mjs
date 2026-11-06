@@ -5,7 +5,8 @@
 // Needs the dev server (`pnpm dev`) and Google Chrome. Usage: pnpm ui:check [base-url]
 import { chromium } from 'playwright-core'
 
-const base = process.argv[2] ?? 'http://localhost:1420'
+// `?offline` keeps the run off Supabase: sample cards, no throwaway anonymous users.
+const base = process.argv[2] ?? 'http://localhost:1420/?offline'
 
 // Persisted shapes of the theme and setup stores (localStorage keys readar.theme / readar.setup).
 const picks = {
@@ -27,7 +28,8 @@ const screens = [
     name: 'liked-list',
     setup: { step: 'done', completed: true, ...picks },
     keys: ['ArrowRight'],
-    click: /^Liked/,
+    // Playful bubbles put the count badge first ("1 Liked").
+    click: /^(\d+ ?)?Liked/,
   },
 ]
 

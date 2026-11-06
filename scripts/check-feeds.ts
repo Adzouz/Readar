@@ -1,6 +1,6 @@
 // Health check for the onboarding catalog: every feed must answer, parse as RSS/Atom and have
 // entries. Run with `pnpm check:feeds` (Node strips the types). Exit code 1 if any feed fails.
-import { CATALOG, keywordSources, type CatalogSource } from '../apps/client/src/data/catalog.ts'
+import { CATALOG, keywordSources, type CatalogSource } from '../packages/core/src/catalog.ts'
 
 const USER_AGENT = 'ReadarFeedCheck/0.1 (catalog health check)'
 const STALE_DAYS = 120

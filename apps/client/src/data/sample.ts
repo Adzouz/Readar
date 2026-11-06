@@ -19,6 +19,7 @@ const strapi: Topic = {
 const item = (topic: Topic, index: number, fields: Omit<Item, 'id' | 'topicId'>): Item => ({
   id: `${topic.id}-${index}`,
   topicId: topic.id,
+  summarized: true,
   ...fields,
 })
 

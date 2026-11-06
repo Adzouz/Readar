@@ -22,8 +22,11 @@ export interface Item {
   age: string
   length: string
   title: string
+  /** Claude's TL;DR, or the source's own excerpt until the item is summarized. */
   tldr: string
   points: string[]
+  /** True when tldr and points come from Claude (shows the AI badge). */
+  summarized?: boolean
   why: string
   /** Relevance shown as signal strength, 1 (low) to 3 (strong). */
   signal: 1 | 2 | 3

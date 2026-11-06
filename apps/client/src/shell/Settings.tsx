@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { useSetup } from '@/onboarding/store'
 import { THEME_STYLES, useTheme, type ThemeMode } from '@/theme/store'
+import { Account } from './Account'
 
 const MODES: { id: ThemeMode; label: string }[] = [
   { id: 'system', label: 'Match system' },
@@ -28,12 +29,16 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      onClick={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="w-full max-w-[440px] rounded-card bg-surface p-5 text-ink shadow-card"
+        // Scrolls inside when the window is short; `relative` keeps sr-only labels inside it.
+        className="relative max-h-full w-full max-w-[440px] overflow-y-auto overscroll-contain rounded-card bg-surface p-5 text-ink shadow-card"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -123,6 +128,11 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
         >
           Edit topics and sources
         </button>
+
+        <h3 className="mt-4 mb-2 text-[12px] font-semibold tracking-[0.08em] text-muted uppercase">
+          Account
+        </h3>
+        <Account />
 
         <p className="mt-4 rounded-ui bg-surface-2 px-3 py-2.5 text-[13px] text-muted">
           Claude API key: coming next. It will stay on this device.

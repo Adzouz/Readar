@@ -13,9 +13,14 @@ Guide for coding agents and contributors working on Readar.
 | `apps/client/src/deck`       | Deck store (zustand), cards per theme, swipe gestures, keyboard, lists   |
 | `apps/client/src/shell`      | App layout per theme, navigation, settings, toasts                       |
 | `apps/client/src/onboarding` | Setup flow (style, topics, sources), setup store, deck wiring            |
-| `apps/client/src/data`       | Topic catalog with suggested feeds; sample cards until fetching is wired |
+| `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                       |
+| `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox              |
+| `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)      |
+| `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)       |
+| `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)          |
 | `apps/client/src-tauri`      | Tauri 2 shell for macOS and iOS                                          |
 | `scripts/check-feeds.ts`     | Health check for every catalog feed (`pnpm check:feeds`)                 |
+| `scripts/db-push.ts`         | `pnpm db:push`: applies migrations with DATABASE_URL, never printed      |
 | `scripts/ui`                 | Layout check and screenshots against the dev server (Playwright, Chrome) |
 | `docs/brief.html`            | Source of the product brief page (published as a claude.ai artifact)     |
 
@@ -30,9 +35,11 @@ pnpm typecheck
 pnpm lint         # oxlint, warnings fail
 pnpm test         # vitest
 pnpm format       # prettier
-pnpm check:feeds  # fetch every catalog feed; run after editing data/catalog.ts
+pnpm check:feeds  # fetch every catalog feed; run after editing packages/core/src/catalog.ts
 pnpm ui:check     # with pnpm dev running: no screen overflows the window
 pnpm ui:shots     # with pnpm dev running: screenshots into .screenshots/
+pnpm db:push      # apply supabase/migrations (DATABASE_URL in root .env.local or .env)
+pnpm worker       # fetch loop (pnpm worker:once for a single pass)
 ```
 
 Rust comes from rustup (`~/.cargo/bin`); open a new shell after installing it, or run `. "$HOME/.cargo/env"`.
@@ -52,7 +59,8 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 - `useStyle()` reads the closest `ThemeScope`, so previews can render a different theme than the app. Use it instead of reading the theme store in components.
 - zustand selectors must return stable references (no new arrays or objects); derive in the component body instead. Don't call `useSomething.getState()` in a component body (oxlint `react/hooks` flags it); use selectors there and `getState()` only in event handlers or outside React.
 - Layout: the page itself never scrolls (`html, body { overflow: hidden }`). Every scroll area must be `relative` so absolutely positioned children (like `sr-only` labels) stay inside it; otherwise the Mac app shows a double scrollbar.
-- Persisted client state: `readar.theme` (style, mode) and `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links). `index.html` reads `readar.theme` before first paint, so keep its shape.
+- Persisted client state: `readar.theme` (style, mode), `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links), `readar.sync` (setup changes not yet saved), `readar.deck` (cached cards and lists), `readar.outbox` (swipes not yet saved), `readar.auth` (Supabase session). `index.html` reads `readar.theme` before first paint, so keep its shape.
+- Database: change the schema only through a new migration file. Shared tables get no client grants; expose shared content through security-definer functions with `set search_path = ''`. Update `apps/client/src/lib/database.ts` to match.
 - Respect `prefers-reduced-motion`: gestures still work, animations are skipped.
 - Glass effects are CSS only (no macOS private APIs), to keep the Mac App Store possible.
 
@@ -64,10 +72,12 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 
 ## Secrets
 
-- Env files are gitignored; only `*.env.example` is committed. `apps/client/.env.local` holds the Supabase URL and publishable key.
+- Env files are gitignored; only `*.env.example` is committed. `apps/client/.env.local` holds the Supabase URL and publishable key. The repo root `.env.local` (or `.env`) holds `DATABASE_URL` and an optional `YOUTUBE_API_KEY` for the worker and `pnpm db:push`.
 - Never paste or log the Supabase secret key, the database password or a Claude API key.
 
 ## Tooling notes
+
+- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. None of them posts or pushes without asking.
 
 - The owner's shell has an RTK hook that rewrites some commands (`curl`, `grep`, `cat`, `ls`) and filters their output. Use `rtk proxy <command>` for raw output. Don't pipe `curl` into `sh`: download to a file first. If `pnpm lint` prints "Linter process terminated abnormally", run `rtk proxy ./node_modules/.bin/oxlint --deny-warnings .` to see the real result.
 - Claude Code memory for this project is keyed to the folder path (`…/apps/sonar`); renaming the folder starts a fresh memory.

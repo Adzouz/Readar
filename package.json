@@ -10,6 +10,9 @@
     "app": "pnpm --filter @readar/client tauri dev",
     "app:ios": "pnpm --filter @readar/client tauri ios dev",
     "build": "pnpm --filter @readar/client build",
+    "worker": "pnpm --filter @readar/worker start",
+    "worker:once": "pnpm --filter @readar/worker once",
+    "db:push": "node scripts/db-push.ts",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint --deny-warnings .",
     "test": "pnpm -r test",
@@ -21,13 +24,15 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "esbuild",
+      "supabase"
     ]
   },
   "devDependencies": {
     "oxlint": "^1.91.0",
     "playwright-core": "^1.65.0",
     "prettier": "^3.9.10",
+    "supabase": "^3.0.0",
     "typescript": "^7.0.2"
   }
 }

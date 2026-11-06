@@ -42,5 +42,12 @@
     "macOS": {
       "minimumSystemVersion": "14.0"
     }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["readar"]
+      }
+    }
   }
 }

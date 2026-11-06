@@ -89,9 +89,16 @@ function SwipeCard({ ref, item, topic, expanded, onDecide }: SwipeCardProps) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const rotate = useTransform(x, [-320, 320], [-14, 14])
-  const likeOpacity = useTransform(x, [24, DISTANCE], [0, 1])
-  const nopeOpacity = useTransform(x, [-DISTANCE, -24], [1, 0])
-  const laterOpacity = useTransform(y, [-DISTANCE, -24], [1, 0])
+  // One label at a time: the action a release would trigger (see stampFor).
+  const likeOpacity = useTransform([x, y], ([dx = 0, dy = 0]: number[]) =>
+    stampOpacity('like', dx, dy),
+  )
+  const nopeOpacity = useTransform([x, y], ([dx = 0, dy = 0]: number[]) =>
+    stampOpacity('nope', dx, dy),
+  )
+  const laterOpacity = useTransform([x, y], ([dx = 0, dy = 0]: number[]) =>
+    stampOpacity('later', dx, dy),
+  )
   const leaving = useRef(false)
 
   const fling = useCallback(
@@ -140,16 +147,36 @@ function SwipeCard({ ref, item, topic, expanded, onDecide }: SwipeCardProps) {
         onTap={() => deckStore.getState().toggleExpanded()}
       >
         <ItemCard item={item} topic={topic} expanded={expanded} />
-        <Stamp label="Like" opacity={likeOpacity} className="left-5 top-5 -rotate-12 text-like" />
-        <Stamp label="Nope" opacity={nopeOpacity} className="right-5 top-5 rotate-12 text-nope" />
-        <Stamp
-          label="Later"
-          opacity={laterOpacity}
-          className="bottom-6 left-1/2 -translate-x-1/2 text-later"
-        />
+        <Stamp label="Like" opacity={likeOpacity} className="-rotate-12 text-like" />
+        <Stamp label="Nope" opacity={nopeOpacity} className="rotate-12 text-nope" />
+        <Stamp label="Later" opacity={laterOpacity} className="text-later" />
       </motion.div>
     </motion.div>
   )
+}
+
+/** Drag distance before a label starts to show. */
+const STAMP_START = 24
+
+/**
+ * The action a drag points to, with how far along it is (0 to 1). Mirrors the release rule:
+ * past the threshold, sideways wins over up; before it, the strongest direction wins.
+ */
+export function stampFor(dx: number, dy: number): { action: Action; progress: number } | null {
+  const along = (distance: number) =>
+    Math.min(1, Math.max(0, (distance - STAMP_START) / (DISTANCE - STAMP_START)))
+  const sideways = along(Math.abs(dx))
+  const up = along(-dy)
+  if (sideways === 0 && up === 0) return null
+  const horizontal = Math.abs(dx) >= DISTANCE || (-dy < DISTANCE && sideways >= up)
+  return horizontal
+    ? { action: dx > 0 ? 'like' : 'nope', progress: sideways }
+    : { action: 'later', progress: up }
+}
+
+const stampOpacity = (action: Action, dx: number, dy: number): number => {
+  const stamp = stampFor(dx, dy)
+  return stamp?.action === action ? stamp.progress : 0
 }
 
 function Stamp({
@@ -162,15 +189,20 @@ function Stamp({
   className: string
 }) {
   return (
+    // Centered on the card, so the action reads at a glance whatever the card's layout.
     <motion.span
       aria-hidden
       style={{ opacity }}
-      className={cn(
-        'pointer-events-none absolute rounded-lg border-[3px] border-current bg-surface px-2.5 py-1 font-display text-[19px] font-extrabold uppercase tracking-[0.08em]',
-        className,
-      )}
+      className="pointer-events-none absolute inset-0 grid place-items-center"
     >
-      {label}
+      <span
+        className={cn(
+          'rounded-xl border-4 border-current bg-surface px-4 py-1.5 font-display text-[30px] font-extrabold uppercase tracking-[0.08em] shadow-card',
+          className,
+        )}
+      >
+        {label}
+      </span>
     </motion.span>
   )
 }
