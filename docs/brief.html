@@ -1,0 +1,1075 @@
+<title>Readar Brief</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+:root{
+  /* Layout: one 1120px reading column; the deck prototype runs in a full-width tinted band.
+     Mono, tracked-caps readouts nod to a sonar console. */
+  --bg:#F3F6F7;--surface:#FFFFFF;--surface-2:#EAF0F2;--ink:#0C1A23;--muted:#56666F;--line:#D5DFE3;
+  --accent:#0B8A9D;--accent-ink:#055D6A;--accent-soft:#D7EEF1;
+  --nope:#D23B49;--like:#1E8E59;--later:#B26F00;
+  --band:#E5EDF0;--ring:rgb(11 138 157 / .2);--sweep:rgb(11 138 157 / .32);--ping:rgb(11 138 157 / .45);
+  --wall-1:#BEE3EA;--wall-2:#F4D8C8;--wall-3:#D6D2F2;
+  --glass:rgb(255 255 255 / .6);--glass-line:rgb(255 255 255 / .75);--win:#FAFCFC;--hover:rgb(12 26 35 / .05);--sel:rgb(12 26 35 / .085);
+  --paper:#FFFFFF;--paper-ink:#151515;--paper-muted:#62676B;--paper-rule:#E6E6E6;--paper-accent:#1E3D96;
+  --toy-bg:#FFF4E8;--toy-ink:#2B1607;
+  --shadow:0 1px 2px rgb(12 26 35 / .06),0 10px 28px rgb(12 26 35 / .08);
+  --lift:0 30px 60px -24px rgb(12 26 35 / .38);
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --f-serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-system:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#071018;--surface:#0E1A23;--surface-2:#13222D;--ink:#E3ECF0;--muted:#8FA1AB;--line:#1F303B;
+  --accent:#37C5D8;--accent-ink:#8DE1EC;--accent-soft:#0D2D35;
+  --nope:#FF6874;--like:#3ECF8A;--later:#FFBF45;
+  --band:#0B1620;--ring:rgb(55 197 216 / .2);--sweep:rgb(55 197 216 / .3);--ping:rgb(55 197 216 / .5);
+  --wall-1:#103842;--wall-2:#3A281F;--wall-3:#242146;
+  --glass:rgb(22 33 41 / .62);--glass-line:rgb(255 255 255 / .07);--win:#0B151C;--hover:rgb(255 255 255 / .05);--sel:rgb(255 255 255 / .09);
+  --paper:#111315;--paper-ink:#ECECEC;--paper-muted:#A1A5A9;--paper-rule:#2A2E31;--paper-accent:#93ABFF;
+  --toy-bg:#1E140C;--toy-ink:#FFE9D6;
+  --shadow:0 1px 2px rgb(0 0 0 / .35),0 12px 30px rgb(0 0 0 / .35);
+  --lift:0 30px 60px -24px rgb(0 0 0 / .7);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#071018;--surface:#0E1A23;--surface-2:#13222D;--ink:#E3ECF0;--muted:#8FA1AB;--line:#1F303B;
+  --accent:#37C5D8;--accent-ink:#8DE1EC;--accent-soft:#0D2D35;
+  --nope:#FF6874;--like:#3ECF8A;--later:#FFBF45;
+  --band:#0B1620;--ring:rgb(55 197 216 / .2);--sweep:rgb(55 197 216 / .3);--ping:rgb(55 197 216 / .5);
+  --wall-1:#103842;--wall-2:#3A281F;--wall-3:#242146;
+  --glass:rgb(22 33 41 / .62);--glass-line:rgb(255 255 255 / .07);--win:#0B151C;--hover:rgb(255 255 255 / .05);--sel:rgb(255 255 255 / .09);
+  --paper:#111315;--paper-ink:#ECECEC;--paper-muted:#A1A5A9;--paper-rule:#2A2E31;--paper-accent:#93ABFF;
+  --toy-bg:#1E140C;--toy-ink:#FFE9D6;
+  --shadow:0 1px 2px rgb(0 0 0 / .35),0 12px 30px rgb(0 0 0 / .35);
+  --lift:0 30px 60px -24px rgb(0 0 0 / .7);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h2{font-size:clamp(27px,3.4vw,36px);font-weight:700;line-height:1.12}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sec{padding-block:80px 0}
+.readout{font-family:var(--f-mono);font-size:12px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0}
+.sec-head{display:grid;gap:10px;margin-bottom:30px;max-width:720px}
+.sec-head p:not(.readout){margin:0;color:var(--muted);font-size:17px}
+kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:3px 6px;border-radius:5px;border:1px solid var(--line);border-bottom-width:2px;background:var(--surface);color:var(--ink)}
+
+/* Hero */
+.hero{padding-block:64px 8px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:center}
+.hero h1{font-size:clamp(64px,10vw,116px);font-weight:800;line-height:.92;letter-spacing:-.04em;margin-block:14px 20px}
+.lede{font-size:clamp(18px,2vw,21px);line-height:1.5;max-width:36ch;margin:0 0 26px}
+.pillars{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.pillars li{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:baseline}
+.pillars b{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-ink)}
+.scope-fig{margin:0;display:grid;justify-items:center;gap:14px}
+.scope{position:relative;width:min(380px,100%);aspect-ratio:1;border-radius:50%;overflow:hidden;
+  background:repeating-radial-gradient(circle closest-side,transparent 0 calc(25% - 1px),var(--ring) calc(25% - 1px) 25%),radial-gradient(circle closest-side,var(--accent-soft),var(--surface));
+  border:1px solid var(--line);box-shadow:var(--shadow)}
+.scope::before{content:"";position:absolute;inset:0;background:linear-gradient(var(--ring),var(--ring)) center/1px 100% no-repeat,linear-gradient(var(--ring),var(--ring)) center/100% 1px no-repeat}
+.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg 285deg,var(--sweep) 360deg);animation:sweep 7s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.contact{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;padding:4px 10px 4px 7px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:500;white-space:nowrap;box-shadow:var(--shadow)}
+.contact i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:ping 2.4s ease-out infinite}
+.contact:nth-of-type(2) i{animation-delay:.6s}.contact:nth-of-type(3) i{animation-delay:1.2s}.contact:nth-of-type(4) i{animation-delay:1.8s}
+@keyframes ping{0%{box-shadow:0 0 0 0 var(--ping)}80%,100%{box-shadow:0 0 0 10px transparent}}
+
+/* Loop */
+.loop{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}
+.loop li{display:grid;gap:8px;align-content:start}
+.loop .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-size:13px;background:var(--accent-soft);color:var(--accent-ink)}
+.loop b{font-family:var(--f-display);font-size:19px;font-weight:700;line-height:1.2}
+.loop span:last-child{color:var(--muted);font-size:15px}
+
+/* Demo band */
+.band{background:var(--band);padding-block:64px;margin-top:80px;border-block:1px solid var(--line)}
+.band .sec-head{margin-bottom:18px}
+.keys{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted);margin-bottom:18px}
+.keys span{display:inline-flex;align-items:center;gap:6px}
+.app{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,var(--wall-1),var(--wall-2) 55%,var(--wall-3));box-shadow:var(--lift),0 0 0 1px var(--line);font-family:var(--f-system);color:var(--ink);outline:none}
+.app:focus-visible{box-shadow:var(--lift),0 0 0 3px var(--accent)}
+.titlebar{height:46px;display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);border-bottom:1px solid var(--glass-line)}
+.lights{display:flex;gap:8px}
+.lights i{width:12px;height:12px;border-radius:50%;background:#FF5F57}
+.lights i:nth-child(2){background:#FEBC2E}.lights i:nth-child(3){background:#28C840}
+.tb-title{font-weight:700;font-size:13.5px}
+.tb-search{display:flex;align-items:center;gap:8px;margin-left:18px;padding:5px 10px;border-radius:8px;background:var(--hover);color:var(--muted);font-size:12.5px;min-width:0}
+.kbd-state{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap}
+.kbd-state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5}
+.app.kb .kbd-state::before{background:var(--like);opacity:1}
+.app-body{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:620px}
+.side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);border-right:1px solid var(--glass-line);padding:6px 10px 14px;display:flex;flex-direction:column;gap:2px}
+.side-h{font-size:11px;font-weight:600;color:var(--muted);margin:14px 8px 4px}
+.nav{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.nav:hover{background:var(--hover)}
+.nav[aria-current="true"]{background:var(--sel);font-weight:600}
+.nav:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav.add{color:var(--muted)}
+.ico{width:22px;height:22px;flex:none;border-radius:6px;display:grid;place-items:center;font-size:13px;line-height:1}
+.ico.big{width:38px;height:38px;border-radius:10px;font-size:20px}
+.nav .count{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.strip{display:none;gap:8px;overflow-x:auto;padding:10px 12px;background:var(--glass);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-line);scrollbar-width:none}
+.chip{all:unset;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;white-space:nowrap;cursor:pointer;color:var(--ink)}
+.chip b{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip[aria-current="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip[aria-current="true"] b{color:inherit}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.stage{background:var(--win);display:grid;grid-template-rows:auto 1fr auto;gap:16px;padding:20px 24px 22px;min-width:0}
+.stage-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sh-txt{min-width:0}
+.stage-head h3{font-family:var(--f-system);font-size:20px;font-weight:700;letter-spacing:-.01em}
+.stage-head .sub{color:var(--muted);font-size:13px}
+.prog{margin-left:auto;width:160px;height:5px;border-radius:5px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);transition:width .3s ease}
+.deck{display:grid;place-items:center;min-height:440px;padding-top:4px}
+.card{grid-area:1/1;width:min(560px,100%);height:420px;position:relative;background:var(--surface);border-radius:18px;overflow:hidden;display:grid;grid-template-rows:150px minmax(0,1fr);box-shadow:0 1px 2px rgb(12 26 35 / .08),0 22px 44px -18px rgb(12 26 35 / .35);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;transition:grid-template-rows .25s ease}
+.card.dragging{cursor:grabbing}
+.card[data-depth="0"]{animation:rise .28s cubic-bezier(.2,.7,.3,1)}
+.card[data-depth="1"]{transform:translateY(16px) scale(.955);pointer-events:none}
+.card[data-depth="2"]{transform:translateY(32px) scale(.91);pointer-events:none;opacity:.75}
+@keyframes rise{from{transform:translateY(16px) scale(.955)}}
+.card.open{grid-template-rows:0 minmax(0,1fr)}
+.thumb{position:relative;overflow:hidden;background:radial-gradient(120% 100% at 0% 0%,var(--g1),transparent 62%),radial-gradient(110% 120% at 100% 100%,var(--g2),transparent 58%),var(--surface-2)}
+.glyph{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgb(0 0 0 / .45);color:#FFFFFF}
+.dur{position:absolute;right:10px;bottom:10px;padding:2px 6px;border-radius:5px;background:rgb(0 0 0 / .62);color:#FFFFFF;font-size:11.5px;font-variant-numeric:tabular-nums}
+.c-body{padding:16px 22px 18px;display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:0}
+.c-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.c-type{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink)}
+.c-title{font-family:var(--f-system);font-size:20px;line-height:1.25;font-weight:700;letter-spacing:-.012em}
+.c-tldr{margin:0;font-size:15px;line-height:1.5}
+.ai{display:inline-flex;align-items:center;gap:3px;margin-right:7px;padding:2px 7px 2px 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:11px;font-weight:700;vertical-align:1px}
+.c-points{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14.5px}
+.card:not(.open) .c-points{display:none}
+.c-foot{margin-top:auto;display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.why{font-family:var(--f-mono);font-size:11.5px;padding:3px 8px;border-radius:6px;background:var(--surface-2)}
+.also{display:inline-flex;align-items:center;gap:6px}
+.dots{display:inline-flex}
+.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--surface);background:var(--accent);margin-left:-4px}
+.dots i:first-child{margin-left:0}.dots i:nth-child(2){background:var(--later)}.dots i:nth-child(3){background:var(--like)}
+.more{margin-left:auto}
+.sig{display:inline-flex;align-items:flex-end;gap:2px;height:12px;margin-left:2px}
+.sig i{width:3px;border-radius:1px;background:var(--line)}
+.sig i:nth-child(1){height:5px}.sig i:nth-child(2){height:8px}.sig i:nth-child(3){height:12px}
+.sig[data-s="1"] i:nth-child(1),.sig[data-s="2"] i:nth-child(-n+2),.sig[data-s="3"] i{background:var(--accent)}
+.stamp{position:absolute;top:18px;padding:5px 10px;border:3px solid currentColor;border-radius:8px;background:var(--surface);font:800 19px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;opacity:0;pointer-events:none}
+.stamp.like{left:18px;color:var(--like);rotate:-12deg}
+.stamp.nope{right:18px;color:var(--nope);rotate:12deg}
+.stamp.later{top:auto;bottom:20px;left:50%;translate:-50% 0;color:var(--later)}
+.actions{display:flex;justify-content:center;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.act{all:unset;box-sizing:border-box;display:grid;justify-items:center;gap:6px;cursor:pointer;color:var(--ink)}
+.act .btn{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 8px rgb(12 26 35 / .08);transition:transform .15s ease}
+.act .btn.sm{width:40px;height:40px;margin-top:5px}
+.act.big .btn{width:60px;height:60px}
+.act:hover .btn{transform:translateY(-2px)}
+.act.nope .btn{color:var(--nope)}.act.like .btn{color:var(--like)}.act.later .btn{color:var(--later)}
+.act:disabled{opacity:.35;cursor:default}
+.act:disabled .btn{transform:none}
+.act:focus-visible .btn{outline:2px solid var(--accent);outline-offset:2px}
+.toast{position:absolute;left:50%;bottom:20px;translate:-50% 12px;opacity:0;padding:8px 14px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:13px;white-space:nowrap;pointer-events:none;transition:opacity .2s ease,translate .2s ease;z-index:5}
+.toast.on{opacity:1;translate:-50% 0}
+.list{display:grid;gap:8px;align-content:start}
+.row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.row .grow{flex:1;min-width:0}
+.row .t{font-weight:600;font-size:14px;line-height:1.35}
+.row .s{font-size:12.5px;color:var(--muted)}
+.mini{all:unset;box-sizing:border-box;flex:none;cursor:pointer;padding:6px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:600}
+.mini:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.empty{display:grid;justify-items:center;gap:8px;text-align:center;color:var(--muted);font-size:14px;max-width:320px}
+.empty b{color:var(--ink);font-size:17px}
+.rings{width:88px;height:88px;border-radius:50%;position:relative;background:repeating-radial-gradient(circle closest-side,transparent 0 calc(33.3% - 1px),var(--ring) calc(33.3% - 1px) 33.3%)}
+.rings::after{content:"";position:absolute;inset:0;margin:auto;width:10px;height:10px;border-radius:50%;background:var(--accent);animation:ping 2.4s ease-out infinite}
+.demo-foot{margin:14px 0 0;font-size:13px;color:var(--muted)}
+
+/* Directions */
+.dirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.dir{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.dir.rec{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.dir-txt{padding:18px 20px 22px;display:grid;gap:10px;align-content:start}
+.dir-txt h3{font-size:21px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink)}
+.dir-txt p{margin:0;font-size:15px}
+.dir-txt dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:14px}
+.dir-txt dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.dir-txt dd{margin:0;color:var(--muted)}
+.mock{height:290px;position:relative;overflow:hidden}
+.mock-a{background:linear-gradient(135deg,var(--wall-1),var(--wall-2) 60%,var(--wall-3));display:grid;padding:18px}
+.ma-win{border-radius:12px;overflow:hidden;display:grid;grid-template-columns:40% minmax(0,1fr);box-shadow:0 18px 40px -16px rgb(12 26 35 / .45),0 0 0 1px var(--glass-line);font-family:var(--f-system);color:var(--ink)}
+.ma-side{background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);padding:10px 7px;display:flex;flex-direction:column;gap:2px;font-size:11.5px;min-width:0}
+.ma-lights{display:flex;gap:5px;margin:0 0 9px 5px}
+.ma-lights i{width:8px;height:8px;border-radius:50%;background:#FF5F57}
+.ma-lights i:nth-child(2){background:#FEBC2E}.ma-lights i:nth-child(3){background:#28C840}
+.ma-item{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:6px;white-space:nowrap}
+.ma-item.on{background:var(--sel);font-weight:600}
+.ma-item em{margin-left:auto;font-style:normal;font-size:10.5px;color:var(--muted)}
+.ma-ico{width:17px;height:17px;flex:none;border-radius:5px;display:grid;place-items:center;font-size:10px}
+.ma-label{font-size:9.5px;font-weight:600;color:var(--muted);margin:7px 5px 1px}
+.ma-main{background:var(--win);display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px;padding:12px;min-width:0}
+.ma-card{background:var(--surface);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:42% minmax(0,1fr);box-shadow:0 1px 2px rgb(12 26 35 / .08),0 10px 24px -10px rgb(12 26 35 / .3)}
+.ma-thumb{background:radial-gradient(120% 100% at 0 0,#FFB17A,transparent 62%),radial-gradient(110% 120% at 100% 100%,#B9A7FF,transparent 58%),var(--surface-2)}
+.ma-txt{padding:8px 10px;display:grid;gap:3px;align-content:start;min-width:0}
+.ma-txt small{font-size:9.5px;color:var(--muted)}
+.ma-txt b{font-size:12.5px;line-height:1.2}
+.ma-txt span{font-size:10.5px;line-height:1.35;color:var(--muted)}
+.ma-pill{justify-self:center;display:flex;gap:6px;padding:5px;border-radius:999px;background:var(--surface-2)}
+.ma-pill span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface)}
+.mock-b{background:var(--paper);color:var(--paper-ink);padding:20px 24px;display:flex;flex-direction:column;gap:8px}
+.mb-top{display:flex;justify-content:space-between;gap:12px;font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;color:var(--paper-muted)}
+.mb-ed{font-family:var(--f-serif);font-size:26px;font-weight:600;line-height:1.1;margin-top:2px}
+.mb-bar{height:2px;background:var(--paper-rule);border-radius:2px;overflow:hidden}
+.mb-bar i{display:block;width:25%;height:100%;background:var(--paper-accent)}
+.mb-src{margin:12px 0 0;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-muted)}
+.mb-h{font-family:var(--f-serif);font-size:21px;line-height:1.18;font-weight:600;letter-spacing:0}
+.mb-sum{margin:0;font-size:13px;line-height:1.5;color:var(--paper-muted)}
+.mb-acts{display:flex;gap:18px;margin-top:auto;font-size:12.5px;font-weight:600;color:var(--paper-accent)}
+.mock-c{background:var(--toy-bg);color:var(--toy-ink);display:grid;grid-template-rows:auto minmax(0,1fr) auto;justify-items:center;gap:12px;padding:14px 16px 16px}
+.mc-bubbles{display:flex;gap:12px}
+.mc-bubbles span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:18px;background:var(--surface);box-shadow:0 0 0 2px var(--toy-bg),0 0 0 4.5px var(--c)}
+.mc-bubbles span.seen{box-shadow:0 0 0 2px var(--toy-bg),0 0 0 3.5px var(--line)}
+.mc-stack{position:relative;width:min(230px,78%);height:100%}
+.mc-card{position:absolute;inset:0;border-radius:26px}
+.mc-card.b2{background:#7C5CFF;rotate:-8deg;scale:.92;opacity:.55}
+.mc-card.b1{background:#1EC8A5;rotate:5deg;scale:.96;opacity:.8}
+.mc-card.front{background:linear-gradient(150deg,#FF9A3D,#FF4D8D);color:#FFFFFF;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;box-shadow:0 14px 30px -12px rgb(255 77 141 / .6)}
+.mc-emoji{position:absolute;top:12px;left:14px;font-size:42px;line-height:1;filter:drop-shadow(0 6px 8px rgb(0 0 0 / .2))}
+.mc-card.front b{font-family:var(--f-display);font-size:18px;line-height:1.08;font-weight:800}
+.mc-card.front small{font-size:11px;opacity:.92}
+.mc-btns{display:flex;gap:14px}
+.mc-btns span{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--surface);box-shadow:0 5px 0 -1px var(--line),0 0 0 2px var(--line)}
+.mc-btns .n{color:var(--nope)}.mc-btns .l{color:var(--later)}.mc-btns .y{color:var(--like)}
+
+/* Inspiration */
+.insp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ins{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px 18px;display:grid;gap:7px;align-content:start}
+.ins .grp{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.ins h3{font-size:19px;font-weight:700}
+.ins h3 a{color:var(--ink);text-decoration:none}
+.ins h3 a:hover{text-decoration:underline}
+.award{justify-self:start;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink)}
+.ins p{margin:0;font-size:14.5px;color:var(--muted)}
+.ins p.borrow{color:var(--ink)}
+.ins p.borrow b{font-weight:600;color:var(--accent-ink)}
+
+/* Topics */
+.topics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.topic{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px 16px;display:grid;gap:6px;align-content:start}
+.topic .em{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:27px;line-height:1;background:color-mix(in srgb,var(--c) 18%,transparent);margin-bottom:4px}
+.topic b{font-family:var(--f-display);font-size:17.5px;font-weight:700;line-height:1.2}
+.topic .subs{font-size:13.5px}
+.topic .eg{font-family:var(--f-mono);font-size:11px;line-height:1.5;color:var(--muted)}
+.topic.custom{border:1.5px dashed var(--accent);background:var(--accent-soft)}
+.fake-input{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.note{margin:14px 0 0;font-size:14px;color:var(--muted);max-width:760px}
+
+/* Tables */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+td small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+tr.rec td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.mvp{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.p2{background:var(--surface-2);color:var(--muted)}
+.pill.no{background:color-mix(in srgb,var(--nope) 14%,transparent);color:var(--nope)}
+.flow{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.flow li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;font-size:14px}
+.flow li b{font-family:var(--f-mono);font-size:11px;font-weight:500;color:var(--accent-ink)}
+.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.examples code{font-family:var(--f-mono);font-size:12px;padding:4px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink)}
+.sub-h{font-size:20px;font-weight:700;margin:34px 0 4px}
+
+/* Panels */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 22px;display:grid;gap:12px;align-content:start}
+.panel h3{font-size:20px;font-weight:700}
+.panel > p{margin:0;font-size:14.5px;color:var(--muted)}
+.panel ul,.panel ol{margin:0;padding-left:18px;display:grid;gap:7px;font-size:14.5px}
+.anat{display:grid;gap:10px}
+.anat-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:baseline;font-size:14.5px}
+.anat-row .k{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+.rank{list-style:none;padding:0!important}
+.rank li{display:grid;gap:2px}
+.rank b{font-weight:600}
+.rank span{color:var(--muted)}
+.mini-table{width:100%;min-width:0;border-collapse:collapse;font-size:14px}
+.mini-table th,.mini-table td{padding:8px 10px}
+.mini-table td{font-variant-numeric:tabular-nums}
+.mini-table td:first-child{font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chips span{font-size:13px;padding:5px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+.phase{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-ink)}
+.q{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:baseline;font-size:15px}
+.q .n{font-family:var(--f-mono);font-size:12px;color:var(--accent-ink)}
+.q small{display:block;color:var(--muted);font-size:13.5px}
+
+/* Footer */
+.foot{padding-block:72px 64px;color:var(--muted);font-size:13.5px}
+.foot ul{margin:10px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px}
+
+@media (max-width:980px){
+  .dirs{grid-template-columns:1fr}
+  .loop{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .loop li:last-child{grid-column:1/-1}
+  .insp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two,.three{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .hero-grid{grid-template-columns:1fr;gap:36px}
+  .app-body{grid-template-columns:minmax(0,1fr);min-height:0}
+  .side,.tb-search,.kbd-state{display:none}
+  .strip{display:flex}
+  .stage{padding:14px 14px 18px}
+  .deck{min-height:460px}
+  .card{height:440px}
+  .c-body{padding:14px 16px 16px}
+  .act .btn{width:46px;height:46px}
+  .act.big .btn{width:54px;height:54px}
+  .act kbd{display:none}
+  .flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .foot ul{grid-template-columns:1fr}
+  .prog{width:100%;margin-left:0}
+}
+@media (max-width:560px){
+  .insp,.loop{grid-template-columns:1fr}
+  .pillars li{grid-template-columns:92px minmax(0,1fr)}
+}
+@media (prefers-reduced-motion: reduce){
+  .sweep,.contact i,.rings::after{animation:none}
+  .card,.card[data-depth="0"]{animation:none!important;transition:none!important}
+  .toast,.prog i,.act .btn{transition:none}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/></symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="readout">Product plan · v0.3 · 6 Nov 2026 · MVP trimmed</p>
+      <h1>Readar</h1>
+      <p class="lede">Pick the topics you care about. Readar listens to blogs, news sites, YouTube and podcasts for you, writes a short summary of everything new, and lets you swipe through it in a few minutes a day.</p>
+      <ul class="pillars">
+        <li><b>Watch</b><span>Topics and sources, checked every hour</span></li>
+        <li><b>Summarize</b><span>Judge any item in ten seconds, in your language</span></li>
+        <li><b>Swipe</b><span>← dismiss · → like · ↑ read later</span></li>
+        <li><b>Sync</b><span>Mac, iPhone and web from day one</span></li>
+      </ul>
+    </div>
+    <figure class="scope-fig" aria-hidden="true">
+      <div class="scope">
+        <div class="sweep"></div>
+        <span class="contact" style="left:35%;top:30%"><i></i>🤖 AI &amp; Tech · 12</span>
+        <span class="contact" style="left:68%;top:46%"><i></i>🎨 Design · 5</span>
+        <span class="contact" style="left:36%;top:64%"><i></i>🚀 Space · 3</span>
+        <span class="contact" style="left:61%;top:80%"><i></i>🔎 Strapi · 2</span>
+      </div>
+      <figcaption class="readout">22 new since 6:00 · next check in 42 min</figcaption>
+    </figure>
+  </div>
+</header>
+
+<main>
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">How it works</p><h2>The loop</h2><p>Every swipe feeds back into what Readar shows you next.</p></div>
+      <ol class="loop">
+        <li><span class="n">1</span><b>Pick topics</b><span>Tap big topic tiles or type any keyword. Each topic gets its own lane.</span></li>
+        <li><span class="n">2</span><b>Readar listens</b><span>Every hour it checks your sources: site feeds, YouTube channels, podcasts, web pages and keyword searches.</span></li>
+        <li><span class="n">3</span><b>AI sorts</b><span>Merges duplicate stories, scores relevance and writes a two-line summary.</span></li>
+        <li><span class="n">4</span><b>You swipe</b><span>← dismiss, → like, ↑ read later. Undo is always one key away.</span></li>
+        <li><span class="n">5</span><b>Lists follow you</b><span>Liked, Read later and Dismissed sync to every device you use.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="demo-h">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Interactive prototype · Native Glass theme</p><h2 id="demo-h">Try the deck</h2><p>Drag a card, or click the window and use the arrow keys. Space opens the full summary and ⌘Z undoes. The Library counts in the sidebar fill up as you go.</p></div>
+      <div class="keys" aria-hidden="true"><span><kbd>←</kbd> Dismiss</span><span><kbd>→</kbd> Like</span><span><kbd>↑</kbd> Read later</span><span><kbd>Space</kbd> Full summary</span><span><kbd>↵</kbd> Open original</span><span><kbd>S</kbd> Share</span><span><kbd>⌘Z</kbd> Undo</span><span><kbd>1–4</kbd> Switch topic</span></div>
+      <div class="app" id="app" tabindex="0" role="application" aria-label="Readar prototype. Left arrow dismisses, right arrow likes, up arrow saves for later.">
+        <div class="titlebar">
+          <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="tb-title">Readar</span>
+          <span class="tb-search"><svg width="14" height="14" aria-hidden="true"><use href="#i-search"/></svg>Search or jump to…<kbd>⌘K</kbd></span>
+          <span class="kbd-state" id="keystate">Click the window to use the keyboard</span>
+        </div>
+        <div class="strip" id="strip"></div>
+        <div class="app-body">
+          <nav class="side" id="side" aria-label="Topics and library"></nav>
+          <div class="stage" id="stage"></div>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </div>
+      <p class="demo-foot">Sample cards with fictional sources. In the real app every card links to the original.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Themes</p><h2>Three themes, one app</h2><p>Each person picks the style that fits them during onboarding and can switch any time in Settings. All three have the same features and come in light and dark; only the look and feel changes.</p></div>
+      <div class="dirs">
+        <article class="dir rec">
+          <div class="mock mock-a" aria-hidden="true">
+            <div class="ma-win">
+              <div class="ma-side">
+                <div class="ma-lights"><i></i><i></i><i></i></div>
+                <div class="ma-item on"><span class="ma-ico" style="background:color-mix(in srgb,#4F6BED 24%,transparent)">🤖</span>AI &amp; Tech<em>12</em></div>
+                <div class="ma-item"><span class="ma-ico" style="background:color-mix(in srgb,#E0663A 24%,transparent)">🎨</span>Design<em>5</em></div>
+                <div class="ma-item"><span class="ma-ico" style="background:color-mix(in srgb,#1E9E8A 24%,transparent)">🚀</span>Space<em>3</em></div>
+                <div class="ma-item"><span class="ma-ico" style="background:color-mix(in srgb,#7A5AF8 24%,transparent)">🔎</span>Strapi<em>2</em></div>
+                <div class="ma-label">Library</div>
+                <div class="ma-item"><span class="ma-ico" style="color:var(--like)"><svg width="11" height="11"><use href="#i-heart"/></svg></span>Liked</div>
+                <div class="ma-item"><span class="ma-ico" style="color:var(--later)"><svg width="11" height="11"><use href="#i-clock"/></svg></span>Read later</div>
+              </div>
+              <div class="ma-main">
+                <div class="ma-card"><div class="ma-thumb"></div><div class="ma-txt"><small>Pixel &amp; Grid · 6 min read</small><b>Designing for the glass slider</b><span>Contrast has to hold from fully clear to fully frosted.</span></div></div>
+                <div class="ma-pill"><span style="color:var(--nope)"><svg width="13" height="13"><use href="#i-x"/></svg></span><span style="color:var(--later)"><svg width="13" height="13"><use href="#i-clock"/></svg></span><span style="color:var(--like)"><svg width="13" height="13"><use href="#i-heart"/></svg></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="dir-txt">
+            <h3>Native Glass <span class="tag">Default</span></h3>
+            <p>Feels like it shipped with macOS 27: translucent sidebar, colored topic icons, one clean card at a time.</p>
+            <dl><dt>Borrows</dt><dd>Moonlitt, Tide Guide, Reeder, macOS 27 sidebars</dd><dt>For</dt><dd>People who want it to feel built into macOS and iOS</dd><dt>Watch</dt><dd>Glass must stay readable at every transparency setting</dd></dl>
+          </div>
+        </article>
+        <article class="dir">
+          <div class="mock mock-b" aria-hidden="true">
+            <div class="mb-top"><span>Thursday 6 November</span><span>3 / 12</span></div>
+            <div class="mb-ed">AI &amp; Tech edition</div>
+            <div class="mb-bar"><i></i></div>
+            <p class="mb-src">Northwind Engineering · 7 min</p>
+            <h4 class="mb-h">We moved summarization on-device. Here is what broke.</h4>
+            <p class="mb-sum">Latency fell to a few hundred milliseconds. Cold starts and battery drain became the new problems.</p>
+            <div class="mb-acts"><span>← Skip</span><span>↑ Save</span><span>→ Keep</span></div>
+          </div>
+          <div class="dir-txt">
+            <h3>Editorial Calm</h3>
+            <p>A daily edition you can finish. Serif headlines, generous margins, a list that ends.</p>
+            <dl><dt>Borrows</dt><dd>Kagi News, Primary, Particle</dd><dt>For</dt><dd>Readers who want depth, calm and a list that ends</dd><dt>Watch</dt><dd>Icons play a smaller role; keep topic colors subtle</dd></dl>
+          </div>
+        </article>
+        <article class="dir">
+          <div class="mock mock-c" aria-hidden="true">
+            <div class="mc-bubbles"><span style="--c:#FF6A3D">🎨</span><span style="--c:#4F6BED">🤖</span><span style="--c:#1E9E8A">🚀</span><span class="seen">🔎</span></div>
+            <div class="mc-stack"><div class="mc-card b2"></div><div class="mc-card b1"></div><div class="mc-card front"><span class="mc-emoji">🎨</span><b>Five variable-font axes worth using</b><small>Kerning Club · 9 min video</small></div></div>
+            <div class="mc-btns"><span class="n"><svg width="18" height="18"><use href="#i-x"/></svg></span><span class="l"><svg width="18" height="18"><use href="#i-clock"/></svg></span><span class="y"><svg width="18" height="18"><use href="#i-heart"/></svg></span></div>
+          </div>
+          <div class="dir-txt">
+            <h3>Playful Deck</h3>
+            <p>Bold topic colors, big 3D emoji, springy stacked cards. Swiping feels like a game.</p>
+            <dl><dt>Borrows</dt><dd>Tinder &amp; Hinge, Duolingo onboarding, grug</dd><dt>For</dt><dd>People who like quick, game-like sessions on the phone</dd><dt>Watch</dt><dd>Tone it down on a large Mac screen</dd></dl>
+          </div>
+        </article>
+      </div>
+      <p class="note">Under the hood, a theme is a token set (color, type, radius, shadow, motion) plus three variant components: the card, the topic navigation and the action bar. Onboarding shows the three side by side with a sample card to swipe in each; skipping picks Native Glass.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Inspiration</p><h2>What to borrow from 2026's best apps</h2><p>News readers that got summaries right, triage tools built for speed, and this year's Apple Design Award apps.</p></div>
+      <div class="insp">
+        <article class="ins"><span class="grp">Calm news</span><h3><a href="https://blog.kagi.com/kagi-news" target="_blank" rel="noopener">Kagi News</a></h3><p>One daily batch, a list that ends, each story merged from many outlets. Its category feed lists are public on GitHub.</p><p class="borrow"><b>Borrow:</b> an edition you can finish, plus story clustering.</p></article>
+        <article class="ins"><span class="grp">Calm news</span><h3><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">Primary: News in Depth</a></h3><span class="award">ADA 2026 winner · Social Impact</span><p>Editor-backed news in a well-organized interface built for thoughtful reading.</p><p class="borrow"><b>Borrow:</b> depth over volume.</p></article>
+        <article class="ins"><span class="grp">AI summaries</span><h3><a href="https://techcrunch.com/2025/05/06/particle-brings-its-ai-powered-news-reader-to-the-web" target="_blank" rel="noopener">Particle</a></h3><p>Groups coverage across outlets, offers summary styles like ELI5 and the 5 Ws, shows opposite sides, and links every source.</p><p class="borrow"><b>Borrow:</b> summary modes and source chips.</p></article>
+        <article class="ins"><span class="grp">AI summaries</span><h3><a href="https://github.com/RSSNext/Folo" target="_blank" rel="noopener">Folo</a></h3><p>Open-source AI feed reader (AGPL) with summaries, translation and lists. Pairs with RSSHub for sites that have no feed.</p><p class="borrow"><b>Borrow:</b> separate views per content type.</p></article>
+        <article class="ins"><span class="grp">Speed</span><h3><a href="https://readwise.io/read" target="_blank" rel="noopener">Readwise Reader</a></h3><p>Inbox, Later and Archive triage, with a keyboard shortcut for every action.</p><p class="borrow"><b>Borrow:</b> the Later queue and a shortcut sheet behind <kbd>?</kbd>.</p></article>
+        <article class="ins"><span class="grp">Speed</span><h3><a href="https://superhuman.com" target="_blank" rel="noopener">Superhuman</a></h3><p>Split inbox lanes and a command bar that reaches everything.</p><p class="borrow"><b>Borrow:</b> one lane per topic, <kbd>⌘K</kbd> for the rest.</p></article>
+        <article class="ins"><span class="grp">Feel</span><h3>Tinder &amp; Hinge</h3><p>Card stack physics, visible buttons for people who don't swipe, and Rewind.</p><p class="borrow"><b>Borrow:</b> the stack, with undo free and unlimited.</p></article>
+        <article class="ins"><span class="grp">Feel</span><h3><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">Moonlitt</a></h3><span class="award">ADA 2026 winner · Interaction</span><p>Apple singled out its easy onboarding and best-in-class Liquid Glass integration.</p><p class="borrow"><b>Borrow:</b> onboarding pacing and glass done right.</p></article>
+        <article class="ins"><span class="grp">Look</span><h3><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">Tide Guide</a></h3><span class="award">ADA 2026 winner · Visuals and Graphics</span><p>Full-screen animated charts and one cohesive theme with a palette that follows the sky.</p><p class="borrow"><b>Borrow:</b> one signature color per topic.</p></article>
+        <article class="ins"><span class="grp">Look</span><h3><a href="https://www.cultofmac.com/news/liquid-glass-changes-ios-27-macos-27" target="_blank" rel="noopener">macOS 27</a></h3><p>Sidebar icons get their color back, sidebars reach the window edge, and people choose how much glass they see.</p><p class="borrow"><b>Borrow:</b> colored topic icons that read at any glass level.</p></article>
+        <article class="ins"><span class="grp">Delight</span><h3><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">grug</a></h3><span class="award">ADA 2026 winner · Delight and Fun</span><p>One tiny daily ritual, delivered with care and humor.</p><p class="borrow"><b>Borrow:</b> a real "all caught up" moment.</p></article>
+        <article class="ins"><span class="grp">Delight</span><h3><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">Structured</a></h3><span class="award">ADA 2026 finalist · Inclusivity</span><p>A colorful icon per item makes a whole day scannable at a glance.</p><p class="borrow"><b>Borrow:</b> icon plus color for every topic.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Onboarding catalog</p><h2>Starter topics</h2><p>Big tiles in onboarding; tap as many as you like. Each opens into subtopics with suggested sources you can switch on or off.</p></div>
+      <div class="topics">
+        <div class="topic" style="--c:#4F6BED"><span class="em">🤖</span><b>AI &amp; Machine Learning</b><span class="subs">LLMs · Agents · Research · Tools</span><span class="eg">e.g. Simon Willison, Hugging Face, MIT Tech Review</span></div>
+        <div class="topic" style="--c:#0EA5E9"><span class="em">💻</span><b>Software Development</b><span class="subs">Web · Mobile · DevOps · Open source</span><span class="eg">e.g. Smashing Magazine, GitHub Blog, Hacker News</span></div>
+        <div class="topic" style="--c:#64748B"><span class="em">🍏</span><b>Apple &amp; Gadgets</b><span class="subs">Mac · iPhone · Wearables · Smart home</span><span class="eg">e.g. MacRumors, 9to5Mac, The Verge</span></div>
+        <div class="topic" style="--c:#E0663A"><span class="em">🎨</span><b>Design</b><span class="subs">UI/UX · Product · Typography · Motion</span><span class="eg">e.g. Nielsen Norman Group, Codrops, Smashing</span></div>
+        <div class="topic" style="--c:#1E9E8A"><span class="em">🚀</span><b>Space &amp; Science</b><span class="subs">Space · Physics · Biology · Health research</span><span class="eg">e.g. Quanta Magazine, NASA, Ars Technica</span></div>
+        <div class="topic" style="--c:#3B82F6"><span class="em">🌍</span><b>World News</b><span class="subs">Europe · Americas · Asia · Politics</span><span class="eg">e.g. BBC News, The Guardian, Le Monde</span></div>
+        <div class="topic" style="--c:#16A34A"><span class="em">📈</span><b>Business &amp; Startups</b><span class="subs">Funding · Founders · Product · Markets</span><span class="eg">e.g. TechCrunch, Lenny's Newsletter, Y Combinator</span></div>
+        <div class="topic" style="--c:#CA8A04"><span class="em">💰</span><b>Money &amp; Investing</b><span class="subs">Investing · Saving · Crypto · Tax</span><span class="eg">e.g. CNBC, FT headlines, finance YouTube</span></div>
+        <div class="topic" style="--c:#22C55E"><span class="em">🌱</span><b>Climate &amp; Energy</b><span class="subs">EVs · Renewables · Policy · Weather</span><span class="eg">e.g. Carbon Brief, Electrek, Canary Media</span></div>
+        <div class="topic" style="--c:#8B5CF6"><span class="em">🎮</span><b>Gaming</b><span class="subs">PC · Consoles · Indie · Esports</span><span class="eg">e.g. Polygon, Eurogamer, Rock Paper Shotgun</span></div>
+        <div class="topic" style="--c:#EF4444"><span class="em">🎬</span><b>Movies &amp; TV</b><span class="subs">Releases · Reviews · Streaming · Trailers</span><span class="eg">e.g. Variety, IndieWire, /Film</span></div>
+        <div class="topic" style="--c:#EC4899"><span class="em">🎵</span><b>Music</b><span class="subs">New releases · Live · Production · Gear</span><span class="eg">e.g. Pitchfork, Stereogum, Resident Advisor</span></div>
+        <div class="topic" style="--c:#F97316"><span class="em">⚽</span><b>Sports</b><span class="subs">Football · F1 · Tennis · Basketball</span><span class="eg">e.g. BBC Sport, ESPN, Formula 1</span></div>
+        <div class="topic" style="--c:#F59E0B"><span class="em">🍳</span><b>Food &amp; Cooking</b><span class="subs">Recipes · Techniques · Restaurants · Wine</span><span class="eg">e.g. Serious Eats, Bon Appétit, cooking YouTube</span></div>
+        <div class="topic" style="--c:#10B981"><span class="em">🏃</span><b>Health &amp; Fitness</b><span class="subs">Running · Sleep · Nutrition · Mind</span><span class="eg">e.g. Runner's World, The Conversation, podcasts</span></div>
+        <div class="topic custom" style="--c:#0B8A9D"><span class="em">🔎</span><b>Your own topic</b><span class="fake-input"><svg width="14" height="14" aria-hidden="true"><use href="#i-search"/></svg>Strapi, Tauri, Ferrari F1, sourdough…</span><span class="subs">Any keyword becomes a watch: news search, Hacker News and YouTube.</span></div>
+      </div>
+      <p class="note">Later: Travel, Photography, Books, Home &amp; DIY, Parenting, Fashion. Each category holds 4–6 subtopics and 8–12 suggested sources. Names above are candidates; every feed gets a health check before it ships.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Sources</p><h2>Where content comes from</h2><p>Feeds first: free, fast, and they respect publishers. Paid news APIs and scraping only where nothing else works.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Source</th><th>How Readar reads it</th><th>Cost</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Blogs and news sites<small>Substack, Medium, dev.to, most publishers</small></td><td>RSS or Atom feed. Paste any URL and Readar finds the feed on its own.</td><td>Free</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>YouTube channels</td><td>Each channel's feed (latest 15 uploads). The YouTube Data API covers keyword search and fallback when feeds hiccup: 10,000 units a day free, 100 per search.</td><td>Free tier</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>Keyword watches<small>"Strapi", "Tauri 2"</small></td><td>Google News search feed (its links need decoding to reach the publisher) plus the Hacker News search API.</td><td>Free</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>Dev communities</td><td>Hacker News, Lobsters, GitHub release feeds.</td><td>Free</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>Sites without a feed</td><td>A page watcher that spots new links on any page, or RSSHub routes for popular sites. Respects robots.txt.</td><td>Low</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>Podcasts</td><td>Episode feeds. Summaries use the show's own transcript when it publishes one, otherwise speech-to-text.</td><td>Medium</td><td><span class="pill mvp">v1</span></td></tr>
+            <tr><td>Newsletters</td><td>A personal Readar inbox address that turns emails into cards.</td><td>Low</td><td><span class="pill p2">Later</span></td></tr>
+            <tr><td>Bluesky, Mastodon</td><td>Public profile and hashtag feeds.</td><td>Free</td><td><span class="pill p2">Later</span></td></tr>
+            <tr><td>Reddit</td><td>Reddit is ending RSS on 13 Nov 2026 and stopped accepting new API requests on 31 Oct 2026.</td><td>n/a</td><td><span class="pill no">Not possible</span></td></tr>
+            <tr><td>Paid news APIs<small>NewsAPI, GNews, NewsData</small></td><td>Free tiers arrive 12–24 h late or forbid commercial use; paid plans start in the hundreds per month.</td><td>$$</td><td><span class="pill no">Skip for now</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="sub-h">Adding your own source</h3>
+      <ol class="flow">
+        <li><b>1 · Paste</b>A link, a YouTube channel, a GitHub repo or a keyword.</li>
+        <li><b>2 · Detect</b>Readar works out what it is and finds the feed behind it.</li>
+        <li><b>3 · Preview</b>You see its five latest items before committing.</li>
+        <li><b>4 · File it</b>Pick a topic. It joins the next hourly check.</li>
+      </ol>
+      <div class="examples"><code>theverge.com</code><code>youtube.com/@yourfavoritechannel</code><code>github.com/strapi/strapi</code><code>"Tauri 2"</code><code>OPML from Feedly or Inoreader</code></div>
+      <p class="note">Sources found through keyword watches land in a screener first, the way HEY handles new senders: approve once, or block for good.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">AI</p><h2>Summaries and ranking</h2><p>Claude Sonnet 5.5 writes each summary only when someone is about to see it. In the MVP every user connects their own Claude API key: summaries are written on their device and stay private to their account.</p></div>
+      <div class="three">
+        <div class="panel">
+          <h3>What a card says</h3>
+          <div class="anat">
+            <div class="anat-row"><span class="k">TL;DR</span><span>One sentence that answers "should I care?"</span></div>
+            <div class="anat-row"><span class="k">Key points</span><span>Three bullets, shown with Space.</span></div>
+            <div class="anat-row"><span class="k">Why you</span><span>Which interests it matches, or "like 2 posts you liked".</span></div>
+            <div class="anat-row"><span class="k">Time</span><span>"7 min read → 30 s summary"</span></div>
+            <div class="anat-row"><span class="k">Coverage</span><span>One card per story, "also covered by 4 sources".</span></div>
+            <div class="anat-row"><span class="k">Language</span><span>Written in your language, even when the source isn't.</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>How ranking learns</h3>
+          <ul class="rank">
+            <li><b>Topic match</b><span>Each topic has a meaning vector built from its name, keywords and examples. Items score by similarity.</span></li>
+            <li><b>Your taste</b><span>→ pulls the topic toward an item, ← pushes it away. After a week the deck feels personal.</span></li>
+            <li><b>Source trust</b><span>Sources you often like rank higher; ones you always dismiss fade, and Readar offers to mute them.</span></li>
+            <li><b>Freshness</b><span>Newer wins when relevance is equal.</span></li>
+          </ul>
+          <p>Shown on each card as signal strength: one to three bars.</p>
+        </div>
+        <div class="panel">
+          <h3>What summaries cost</h3>
+          <div class="table-wrap">
+            <table class="mini-table">
+              <thead><tr><th>Model</th><th>Per 1,000</th><th>Per month*</th></tr></thead>
+              <tbody>
+                <tr><td>Opus 5.5</td><td>≈ $18</td><td>≈ $27</td></tr>
+                <tr class="rec"><td>Sonnet 5.5 · chosen</td><td>≈ $9</td><td>≈ $13.50</td></tr>
+                <tr><td>Haiku 5.5</td><td>≈ $0.45</td><td>≈ $0.70</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Rough estimate: about 2,500 tokens in and 400 out per article, at Anthropic's list prices. *One person reading 50 cards a day. Pre-computed summaries can go through the Batch API at half price.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Plans</p><h2>Plans, after the MVP</h2><p>The MVP has no plans: everyone connects their own Claude API key. This lineup arrives with the public launch. Fetching and sync cost little; summaries are the real cost.</p></div>
+      <div class="three">
+        <div class="panel"><span class="phase">Free</span><h3>Try the loop</h3><ul><li>A few topics</li><li>A daily quota of AI summaries</li><li>Feeds, YouTube and keyword watches</li><li>Share pages</li></ul></div>
+        <div class="panel"><span class="phase">Pro</span><h3>Readar pays for AI</h3><ul><li>Unlimited topics and summaries, within fair use</li><li>Podcasts and sites without a feed</li><li>Hourly refresh</li><li>Priced to cover Sonnet 5.5 for a heavy reader</li></ul></div>
+        <div class="panel"><span class="phase">Pro + own key</span><h3>Your Claude, cheaper plan</h3><ul><li>Everything in Pro</li><li>Summaries billed to your own Claude API key</li><li>Readar charges only for fetching, sync and storage</li></ul></div>
+      </div>
+      <div class="two" style="margin-top:14px">
+        <div class="panel"><h3>How "own key" works</h3><ul><li>Create an API key in Claude Console and paste it in Settings. Readar checks it with one small test call.</li><li>MVP: the key stays in your device's keychain (browser storage on web) and never reaches Readar's servers. Summaries are written on your device and synced to your other devices.</li><li>Summaries written with your key stay private to your account. After launch, summaries already in Readar's shared library will cost you nothing.</li><li>Settings suggests giving the key its own spending limit in Console.</li><li>If the key fails or runs out of credit, summaries pause and cards show the source's own excerpt until it's fixed.</li></ul></div>
+        <div class="panel"><h3>Why not "Sign in with Claude"?</h3><p>Anthropic doesn't let third-party apps offer Claude.ai login or use Free, Pro, Max or Ultra plan credentials for their users. A Claude Console API key, billed to its owner, is the allowed path.</p><p><a href="https://code.claude.com/docs/en/legal-and-compliance" target="_blank" rel="noopener">Anthropic: authentication and credential use</a></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Stack</p><h2>Built once for Mac, iPhone and web</h2><p>Tauri 2 and React for every screen, Supabase for accounts, sync and data. The other options stay listed for the record.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>App shell</th><th>Mac</th><th>Web</th><th>Phone</th><th>Fit for you</th></tr></thead>
+          <tbody>
+            <tr class="rec"><td>Tauri 2 + React<small>Chosen</small></td><td>Native window, vibrancy, menu bar; about 10 MB</td><td>Same React app</td><td>Tauri mobile, or Capacitor around the same UI</td><td>Your PRism toolbox. Mobile plugins are younger.</td></tr>
+            <tr><td>Electron + React</td><td>Proven, 100 MB+</td><td>Same React app</td><td>Needs a separate wrapper</td><td>Your exact PRism pipeline</td></tr>
+            <tr><td>Expo (React Native)</td><td>Web build inside a desktop wrapper</td><td>React Native Web</td><td>Best native gestures</td><td>New styling stack instead of shadcn</td></tr>
+            <tr><td>SwiftUI + separate web app</td><td>Best native feel, widgets, Liquid Glass</td><td>A second, React codebase</td><td>iPhone only, no Android</td><td>Your Mirador know-how; two UIs to maintain</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr><th>Backend</th><th>Accounts &amp; sync</th><th>Ranking</th><th>Fetch jobs</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="rec"><td>Supabase<small>Chosen</small></td><td>Postgres with live updates; Apple, Google and email-code sign-in</td><td>pgvector, in plain SQL</td><td>Small Node worker on a schedule</td><td>Works with Drizzle; open source, self-hostable</td></tr>
+            <tr><td>Convex</td><td>Live queries on every device, no setup</td><td>Built-in vector index</td><td>Built-in crons and actions</td><td>Fewest moving parts; harder to leave later</td></tr>
+            <tr><td>Strapi 5</td><td>Refresh on focus, no live push</td><td>Custom pgvector queries</td><td>Cron tasks inside Strapi</td><td>Admin panel to curate topics and sources; dogfooding</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chips" aria-label="Shared foundation"><span>TypeScript</span><span>React 19</span><span>Tailwind 4 + shadcn/ui</span><span>TanStack Router &amp; Query</span><span>zustand</span><span>zod</span><span>Motion for gestures</span><span>Geist</span><span>pnpm · oxlint · vitest</span><span>Claude API for summaries</span><span>Readability for article text</span></div>
+      <h3 class="sub-h">Services around it</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Need</th><th>Plan</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Summaries</td><td>Claude Sonnet 5.5 with structured JSON output, written on the user's device with their own key and synced to their account</td><td><span class="pill mvp">Decided</span></td></tr>
+            <tr><td>Fetch and enrich worker</td><td>Node worker on a schedule, jobs in Supabase Queues: conditional fetches, dedupe, text extraction, embeddings</td><td><span class="pill mvp">Decided</span></td></tr>
+            <tr><td>Web app</td><td>Static React build of the same client; share pages come with the public launch</td><td><span class="pill p2">Host in Phase 1</span></td></tr>
+            <tr><td>Embeddings</td><td>A small open model inside the worker (free) or a hosted embedding API</td><td><span class="pill p2">Spike in Phase 0</span></td></tr>
+            <tr><td>Podcast transcripts</td><td>The show's own transcript first, then a speech-to-text API</td><td><span class="pill p2">Pick in Phase 2</span></td></tr>
+            <tr><td>Payments</td><td>In-app purchase on Mac and iPhone, Stripe on web, one entitlement system (RevenueCat)</td><td><span class="pill p2">After MVP</span></td></tr>
+            <tr><td>Languages</td><td>English for the MVP; French, Spanish, German and Portuguese (Brazil) at launch</td><td><span class="pill mvp">Decided</span></td></tr>
+            <tr><td>Analytics and crashes</td><td>Privacy-friendly product analytics and crash reporting, hosted in the EU</td><td><span class="pill p2">Pick in Phase 3</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="sub-h">How the pieces connect</h3>
+      <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px">
+<pre class="mermaid" style="margin:0;background:transparent">
+flowchart LR
+  APPS["Mac, iPhone and web apps"]
+  subgraph SB["Supabase"]
+    AUTH["Auth"]
+    DB[("Postgres + pgvector")]
+    RT["Live sync"]
+    QUEUE["Queues"]
+  end
+  WORKER["Fetch and enrich worker"]
+  SRC["Feeds, YouTube, news search, pages, podcasts"]
+  CLAUDE["Claude Sonnet 5.5"]
+  APPS --> AUTH
+  APPS -- "swipes and lists" --> DB
+  RT -- "updates" --> APPS
+  QUEUE --> WORKER
+  WORKER -- "fetch" --> SRC
+  WORKER -- "items, text, vectors" --> DB
+  APPS -- "summaries, with your own key" --> CLAUDE
+  APPS -- "saved summaries" --> DB
+</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Roadmap</p><h2>MVP first, then the public launch</h2><p>Phases 0 to 2 are the MVP on Mac, iPhone and web. Phase 3 adds plans, share pages, more languages and the store launch.</p></div>
+      <div class="two">
+        <div class="panel"><span class="phase">Phase 0</span><h3>Foundations and spikes</h3><ul><li>Monorepo: Tauri 2 app for Mac and iPhone, web build, worker, shared packages</li><li>Theme tokens for Native Glass, Editorial Calm and Playful Deck, light and dark</li><li>Spikes on iPhone: sign-in via deep link, share sheet, Safari view, swipe performance</li><li>Summary prompt checked on about 50 real articles with Sonnet 5.5</li><li>Claude key in the device keychain; first real summaries on device</li><li>CI for lint, types and tests</li></ul></div>
+        <div class="panel"><span class="phase">Phase 1</span><h3>Core loop on Mac and web</h3><ul><li>Onboarding: style, topics, sources, Claude key; email sign-in after the first deck</li><li>Topic catalog with curated sources; add your own by URL, channel, keyword or OPML</li><li>Worker: feeds, YouTube, keyword watches, Hacker News, dedupe</li><li>Deck per topic with ← → ↑, Space and undo; summaries written on device; ranking</li><li>Liked, Read later, Dismissed, synced across devices</li></ul></div>
+        <div class="panel"><span class="phase">Phase 2</span><h3>iPhone and the rest of v1</h3><ul><li>iPhone app: gestures, haptics, share sheet, Safari view</li><li>Page watcher for sites without a feed; podcasts with transcripts</li><li>Share the article link from any card</li></ul></div>
+        <div class="panel"><span class="phase">Phase 3</span><h3>Public launch</h3><ul><li>Free, Pro and Pro + own key, through the App Store and Stripe</li><li>Share pages on readar.news; French, Spanish, German, Portuguese (Brazil)</li><li>Sign in with Apple, in-app account deletion, data export</li><li>Terms, privacy policy and publisher policy</li><li>Mac App Store and App Store review; listings in five languages</li><li>Landing page on getreadar.com; analytics and crash reporting</li></ul></div>
+      </div>
+      <p class="note">After v1: Android, a newsletter inbox, Bluesky and Mastodon, a morning briefing notification, a Mac menu-bar companion, widgets.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head"><p class="readout">Decisions</p><h2>What we agreed</h2><p>Locked on 6 November 2026, then trimmed for a simpler first MVP: no plans, no share pages or domain, English only, and each user's own Claude API key kept on their device.</p></div>
+      <div class="table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Area</th><th>Decision</th></tr></thead>
+          <tbody>
+            <tr><td>Name</td><td>Readar (read + radar). No App Store app uses it; getreadar.com and readar.news were free to register on 6 Nov</td></tr>
+            <tr><td>Platforms in v1</td><td>Mac, iPhone and web; Android after v1</td></tr>
+            <tr><td>App shell</td><td>Tauri 2 + React, one codebase</td></tr>
+            <tr><td>Backend</td><td>Supabase: Postgres, pgvector, auth, live sync, queues, Vault</td></tr>
+            <tr><td>Summaries</td><td>Claude Sonnet 5.5</td></tr>
+            <tr><td>Themes</td><td>Native Glass, Editorial Calm and Playful Deck, chosen in onboarding; look and feel only; light and dark</td></tr>
+            <tr><td>Audience</td><td>A simple MVP first, then the public launch</td></tr>
+            <tr><td>Claude</td><td>MVP: every user connects their own Claude API key, kept in the device keychain; summaries are written on the device and synced. Plans (Free, Pro, Pro + own key) come with the public launch</td></tr>
+            <tr><td>Sharing</td><td>MVP: the article's own link. Readar share pages, and their domain, come with the public launch</td></tr>
+            <tr><td>Languages</td><td>MVP: English. At launch: French, Spanish, German, Portuguese (Brazil), and summaries in the reader's language</td></tr>
+            <tr><td>Sources in v1</td><td>Feeds, YouTube, keyword watches, Hacker News, sites without a feed, podcasts. No Reddit</td></tr>
+            <tr><td>Reading</td><td>The original opens in the browser on Mac and web, and in an in-app Safari view on iPhone</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two" style="margin-top:14px">
+        <div class="panel"><h3>Decide later</h3><ul><li>Prices and free-plan limits (a few topics, a daily summary quota)</li><li>Whether free accounts get a cheaper model to keep costs down</li><li>Embedding model, worker host and web host</li><li>Speech-to-text provider for podcasts</li><li>Supabase region (EU suits GDPR)</li></ul></div>
+        <div class="panel"><h3>Your to-dos</h3><ul><li>Create the Supabase project (in progress)</li><li>Register getreadar.com and readar.news before the public launch</li><li>Run a trademark search on "Readar" (USPTO, EUIPO)</li><li>Apple Developer Program membership for the Mac and iPhone apps</li><li>Accounts: Supabase, Claude Console (API key), Google Cloud (YouTube API key); later RevenueCat and Stripe</li></ul></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="readout">Research notes</p>
+    <ul>
+      <li><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/" target="_blank" rel="noopener">2026 Apple Design Awards winners and finalists</a></li>
+      <li><a href="https://www.cultofmac.com/news/liquid-glass-changes-ios-27-macos-27" target="_blank" rel="noopener">Liquid Glass changes in iOS 27 and macOS 27</a></li>
+      <li><a href="https://blog.kagi.com/kagi-news" target="_blank" rel="noopener">Kagi News launch post</a> · <a href="https://github.com/kagisearch/kite-public" target="_blank" rel="noopener">kite-public feeds (CC BY-NC)</a></li>
+      <li><a href="https://techcrunch.com/2025/05/06/particle-brings-its-ai-powered-news-reader-to-the-web" target="_blank" rel="noopener">Particle on the web</a> · <a href="https://github.com/RSSNext/Folo" target="_blank" rel="noopener">Folo</a> · <a href="https://github.com/DIYgod/RSSHub" target="_blank" rel="noopener">RSSHub</a></li>
+      <li><a href="https://www.techrepublic.com/article/news-reddit-rss-public-api-shutdown/" target="_blank" rel="noopener">Reddit ends RSS and public API access</a></li>
+      <li><a href="https://www.codewords.ai/blog/google-news-rss" target="_blank" rel="noopener">Google News RSS in 2026</a> · <a href="https://www.wprssaggregator.com/youtube-rss-feed/" target="_blank" rel="noopener">YouTube channel feeds</a></li>
+      <li><a href="https://newsdata.io/blog/news-api-comparison" target="_blank" rel="noopener">News API free tiers compared (vendor post)</a></li>
+      <li><a href="https://jlw-newsletter.pages.dev/jlw-2026-01-26-tauri.html" target="_blank" rel="noopener">Tauri 2 mobile field notes</a></li>
+      <li><a href="https://code.claude.com/docs/en/legal-and-compliance" target="_blank" rel="noopener">Anthropic: credential use in third-party apps</a></li>
+      <li><a href="https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access" target="_blank" rel="noopener">Claude subscription logins banned in third-party apps</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const TOPICS = [
+    { id: "ai", name: "AI & Tech", icon: "🤖", hue: "#4F6BED", items: [
+      { type: "Article", source: "Northwind Engineering", ago: "2h", len: "7 min read", title: "We moved summarization on-device. Here is what broke.", tldr: "Latency dropped from 1.8 s to 300 ms, but cold starts and battery drain became the new problems.", points: ["4-bit quantization kept quality within 2% on their own eval set", "Preloading the model at launch fixed the cold-start stutter", "Heavy use cost about 6% battery per hour on older phones"], why: "Matches: on-device AI · mobile", signal: 3, also: 0, g: ["#8C9BFF", "#FFB38A"] },
+      { type: "Video", source: "Frame by Frame", ago: "5h", len: "14:32", title: "Tauri 2 vs Electron: the same app built twice", tldr: "A side-by-side build of one note-taking app. The trade-offs come down to bundle size, memory use and rendering consistency.", points: ["Bundle size and idle memory favor the Rust shell", "Chromium everywhere means fewer CSS surprises", "Updater, tray and deep-link plugins compared one by one"], why: "Matches: desktop apps · Rust", signal: 2, also: 0, g: ["#5ED6C8", "#6A78FF"] },
+      { type: "Article", source: "Open Wire", ago: "3h", len: "4 min read", title: "A new open-weight model leads the small-model coding benchmarks", tldr: "Four outlets covered the release. The gains are mostly on coding tasks, and the license allows commercial use.", points: ["Runs on a single consumer GPU", "Weaker than larger models on long documents", "Weights and evaluation code are both public"], why: "Matches: LLMs · open source", signal: 2, also: 4, g: ["#FFD27A", "#7FA6FF"] },
+      { type: "Thread", source: "Byteboard", ago: "38m", len: "214 replies", title: "How do you keep up with tech news without drowning?", tldr: "Most replies settle on fewer sources, one daily check-in and aggressive unsubscribing. A few swear by feeds plus filters.", points: ["Top answer: one batch a day, no notifications", "Several people only follow keyword alerts for their own stack", "Recurring complaint: the same story repeated across ten sites"], why: "Matches: productivity · tech", signal: 2, also: 0, g: ["#FFC46B", "#FF7E95"] },
+      { type: "Article", source: "The Render Loop", ago: "1d", len: "11 min read", title: "Ranking a personal feed with embeddings in 300 lines", tldr: "Scores articles against a topic vector, then nudges that vector with every like and dismiss.", points: ["One vector per topic, updated on each swipe", "Blend relevance with freshness so old posts do not dominate", "Cache embeddings per URL to keep costs near zero"], why: "Matches: AI · recommendation", signal: 3, also: 0, g: ["#9BE7B8", "#5B8CFF"] }
+    ] },
+    { id: "design", name: "Design", icon: "🎨", hue: "#E0663A", items: [
+      { type: "Article", source: "Pixel & Grid", ago: "1h", len: "6 min read", title: "Designing for the glass slider: readable UI at every transparency level", tldr: "Now that people choose how much glass they see, text contrast has to hold from fully clear to fully frosted.", points: ["Test over the busiest wallpaper, not the default one", "Keep vibrancy for secondary text only", "Give key controls a solid fallback at low transparency"], why: "Matches: UI design · macOS", signal: 3, also: 0, g: ["#FFB17A", "#B9A7FF"] },
+      { type: "Video", source: "Kerning Club", ago: "6h", len: "9:05", title: "Five variable-font axes worth using in product UI", tldr: "Weight and optical size are the safe bets. Width and grade help dense dashboards and dark mode.", points: ["Optical size fixes small labels for free", "Grade keeps text width stable when switching to dark mode", "Animate weight sparingly: it reflows text"], why: "Matches: typography", signal: 2, also: 0, g: ["#FF9AA8", "#FFD08A"] },
+      { type: "Article", source: "Onboard Lab", ago: "2d", len: "9 min read", title: "Teardown: 12 apps that reach value in under a minute", tldr: "The best ones ask for interests first, show real content right away, and leave sign-up for later.", points: ["Big visual topic tiles beat long checklists", "Ask for an account after the first useful moment", "A progress bar cuts drop-off in multi-step setup"], why: "Matches: onboarding · product", signal: 3, also: 0, g: ["#FFC9A0", "#8FD3FF"] }
+    ] },
+    { id: "space", name: "Space", icon: "🚀", hue: "#1E9E8A", items: [
+      { type: "Article", source: "Orbit Weekly", ago: "4h", len: "8 min read", title: "Small, cheap and many: the new playbook for lunar landers", tldr: "Agencies are trading one flagship mission for several low-cost landers, accepting more failures in exchange for faster learning.", points: ["Several landers share one launch to cut costs", "Payloads are mostly small science instruments", "Failures are planned for in the budget"], why: "Matches: space exploration", signal: 2, also: 0, g: ["#7FD8C9", "#6C7BFF"] },
+      { type: "Video", source: "Small Planet", ago: "1d", len: "18:47", title: "How a space telescope keeps its mirror segments aligned", tldr: "Tiny motors nudge each segment by a fraction of a hair's width, guided by images of a bright star.", points: ["Alignment is checked on a regular schedule", "Temperature swings cause most of the drift", "Some ground telescopes use the same idea"], why: "Matches: astronomy", signal: 2, also: 0, g: ["#8AB4FF", "#C6A2FF"] }
+    ] },
+    { id: "strapi", name: "“Strapi”", short: "Strapi", icon: "🔎", hue: "#7A5AF8", custom: true, items: [
+      { type: "Article", source: "A Dev's Notebook", ago: "7h", len: "5 min read", title: "Migrating a content model to Strapi 5, step by step", tldr: "A log of moving 40 content types, with each gotcha hit along the way and how it was fixed.", points: ["Map relations before running the migration", "Draft and publish changes how drafts are queried", "Test API responses, not only the admin panel"], why: "Keyword: “Strapi” in the title", signal: 3, also: 0, g: ["#B6A4FF", "#7FD0FF"] },
+      { type: "Thread", source: "Byteboard", ago: "1d", len: "96 replies", title: "Which headless CMS do you use for multilingual sites?", tldr: "A long comparison thread. Strapi comes up often, mostly about its localization setup and self-hosting.", points: ["Most replies weigh hosting cost against convenience", "Localization workflows are the main decision factor", "Several people describe migrating between tools"], why: "Keyword: “Strapi” in 14 replies", signal: 2, also: 0, g: ["#C7B6FF", "#FFC2A1"] }
+    ] }
+  ];
+  TOPICS.forEach(t => {
+    t.tint = "color-mix(in srgb, " + t.hue + " 22%, transparent)";
+    t.total = t.items.length;
+    t.items.forEach((it, i) => { it.id = t.id + "-" + i; it.topic = t.id; });
+  });
+
+  const LISTS = [
+    { id: "liked", name: "Liked", icon: "i-heart", color: "var(--like)", empty: "Swipe right or press → on a card to like it." },
+    { id: "later", name: "Read later", icon: "i-clock", color: "var(--later)", empty: "Swipe up or press ↑ to save a card for later." },
+    { id: "dismissed", name: "Dismissed", icon: "i-x", color: "var(--nope)", empty: "Swipe left or press ← to dismiss. You can restore from here." }
+  ];
+  const store = { liked: [], later: [], dismissed: [] };
+  const TARGET = { like: "liked", later: "later", nope: "dismissed" };
+  const DONE = { like: "Liked", later: "Saved for later", nope: "Dismissed" };
+  let history = [];
+  let view = "ai";
+  let expanded = false;
+  let busy = false;
+  let toastTimer = 0;
+
+  const app = document.getElementById("app");
+  const side = document.getElementById("side");
+  const strip = document.getElementById("strip");
+  const stage = document.getElementById("stage");
+  const toastEl = document.getElementById("toast");
+  const keyState = document.getElementById("keystate");
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const icon = (id, size) => `<svg width="${size}" height="${size}" aria-hidden="true"><use href="#${id}"/></svg>`;
+  const topicById = id => TOPICS.find(t => t.id === id);
+  const listById = id => LISTS.find(l => l.id === id);
+  const cur = v => (view === v ? ' aria-current="true"' : "");
+
+  function renderNav() {
+    side.innerHTML =
+      `<p class="side-h">Topics</p>` +
+      TOPICS.map((t, i) => `<button class="nav" data-view="${t.id}"${cur(t.id)} title="${esc(t.short || t.name)} (key ${i + 1})"><span class="ico" style="background:${t.tint}">${t.icon}</span><span>${esc(t.name)}</span><span class="count">${t.items.length || "✓"}</span></button>`).join("") +
+      `<button class="nav add" data-add><span class="ico">${icon("i-plus", 14)}</span><span>Add topic</span></button>` +
+      `<p class="side-h">Library</p>` +
+      LISTS.map(l => `<button class="nav" data-view="${l.id}"${cur(l.id)}><span class="ico" style="color:${l.color}">${icon(l.icon, 15)}</span><span>${l.name}</span><span class="count">${store[l.id].length}</span></button>`).join("");
+    strip.innerHTML =
+      TOPICS.map(t => `<button class="chip" data-view="${t.id}"${cur(t.id)}>${t.icon} ${esc(t.short || t.name)} <b>${t.items.length}</b></button>`).join("") +
+      LISTS.map(l => `<button class="chip" data-view="${l.id}"${cur(l.id)}><span style="color:${l.color};display:inline-flex">${icon(l.icon, 13)}</span>${l.name} <b>${store[l.id].length}</b></button>`).join("");
+  }
+
+  function cardHTML(it, depth) {
+    const open = depth === 0 && expanded;
+    const glyph = it.type === "Video" ? `<span class="glyph">${icon("i-play", 22)}</span><span class="dur">${it.len}</span>`
+      : it.type === "Thread" ? `<span class="glyph">${icon("i-chat", 20)}</span>` : "";
+    const also = it.also ? `<span class="also"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Also covered by ${it.also} sources</span>` : "";
+    return `<article class="card${open ? " open" : ""}" data-depth="${depth}" style="--g1:${it.g[0]};--g2:${it.g[1]}"${depth ? ' aria-hidden="true"' : ""}>
+      <div class="thumb">${glyph}</div>
+      <div class="c-body">
+        <div class="c-meta"><span class="c-type">${it.type}</span><span>${esc(it.source)} · ${it.ago} · ${esc(it.len)}</span><span class="sig" data-s="${it.signal}" title="Relevance: ${["", "low", "good", "strong"][it.signal]}"><i></i><i></i><i></i></span></div>
+        <h4 class="c-title">${esc(it.title)}</h4>
+        <p class="c-tldr"><span class="ai">${icon("i-spark", 10)}AI</span>${esc(it.tldr)}</p>
+        <ul class="c-points">${it.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>
+        <div class="c-foot"><span class="why">${esc(it.why)}</span>${also}<span class="more">${open ? "Space to collapse" : "Space or click for the full summary"}</span></div>
+      </div>
+      <span class="stamp like">Like</span><span class="stamp nope">Nope</span><span class="stamp later">Later</span>
+    </article>`;
+  }
+
+  function actionsHTML(empty) {
+    const d = empty ? " disabled" : "";
+    return `<div class="actions">
+      <button class="act" data-act="undo" aria-label="Undo"${history.length ? "" : " disabled"}><span class="btn sm">${icon("i-undo", 16)}</span><kbd>⌘Z</kbd></button>
+      <button class="act nope big" data-act="nope" aria-label="Dismiss"${d}><span class="btn">${icon("i-x", 24)}</span><kbd>←</kbd></button>
+      <button class="act later" data-act="later" aria-label="Read later"${d}><span class="btn">${icon("i-clock", 20)}</span><kbd>↑</kbd></button>
+      <button class="act" data-act="open" aria-label="Open original"${d}><span class="btn">${icon("i-open", 19)}</span><kbd>↵</kbd></button>
+      <button class="act" data-act="share" aria-label="Share"${d}><span class="btn">${icon("i-share", 18)}</span><kbd>S</kbd></button>
+      <button class="act like big" data-act="like" aria-label="Like"${d}><span class="btn">${icon("i-heart", 22)}</span><kbd>→</kbd></button>
+    </div>`;
+  }
+
+  function renderTopic(t) {
+    const done = t.total - t.items.length;
+    const pct = t.total ? Math.round((done / t.total) * 100) : 100;
+    const sub = t.items.length ? `${t.custom ? "Keyword watch · " : ""}${t.items.length} new since this morning` : "All caught up";
+    const deck = t.items.length
+      ? `<div class="deck">${t.items.slice(0, 3).map((it, i) => cardHTML(it, i)).reverse().join("")}</div>`
+      : `<div class="deck"><div class="empty"><div class="rings" aria-hidden="true"></div><b>All caught up</b><span>Readar checks your sources again in 42 min.</span>${history.length ? `<button class="mini" data-undo>Undo last swipe</button>` : ""}</div></div>`;
+    stage.innerHTML = `<div class="stage-head"><span class="ico big" style="background:${t.tint}">${t.icon}</span><div class="sh-txt"><h3>${esc(t.name)}</h3><div class="sub">${sub}</div></div><div class="prog" title="${done} of ${t.total} reviewed"><i style="width:${pct}%"></i></div></div>${deck}${actionsHTML(!t.items.length)}`;
+    const top = stage.querySelector('.card[data-depth="0"]');
+    if (top) attachDrag(top);
+  }
+
+  function renderList(l) {
+    const items = store[l.id].slice().reverse();
+    const btn = it => l.id === "dismissed" ? `<button class="mini" data-restore="${it.id}">Restore</button>`
+      : l.id === "later" ? `<button class="mini" data-read="${it.id}">Mark read</button>`
+      : `<button class="mini" data-share>Share</button>`;
+    const body = items.length
+      ? `<div class="list">${items.map(it => { const t = topicById(it.topic); return `<div class="row"><span class="ico" style="background:${t.tint}">${t.icon}</span><div class="grow"><div class="t">${esc(it.title)}</div><div class="s">${esc(it.source)} · ${it.type} · ${esc(t.short || t.name)}</div></div>${btn(it)}</div>`; }).join("")}</div>`
+      : `<div class="deck"><div class="empty"><div class="rings" aria-hidden="true"></div><b>Nothing here yet</b><span>${l.empty}</span></div></div>`;
+    stage.innerHTML = `<div class="stage-head"><span class="ico big" style="color:${l.color}">${icon(l.icon, 18)}</span><div class="sh-txt"><h3>${l.name}</h3><div class="sub">${items.length} item${items.length === 1 ? "" : "s"} · synced to your other devices</div></div></div>${body}`;
+  }
+
+  function render() {
+    const hadFocus = app.contains(document.activeElement);
+    renderNav();
+    const l = listById(view);
+    if (l) renderList(l); else renderTopic(topicById(view));
+    if (hadFocus && !app.contains(document.activeElement)) app.focus({ preventScroll: true });
+  }
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("on"), 1800);
+  }
+
+  function setStamps(card, dx, dy) {
+    const clamp = v => Math.max(0, Math.min(1, v));
+    card.querySelector(".stamp.like").style.opacity = clamp(dx / 110);
+    card.querySelector(".stamp.nope").style.opacity = clamp(-dx / 110);
+    card.querySelector(".stamp.later").style.opacity = Math.abs(dx) < 80 ? clamp(-dy / 110) : 0;
+  }
+
+  function decide(action, dy) {
+    if (busy || listById(view)) return;
+    const t = topicById(view);
+    if (!t.items.length) return;
+    const card = stage.querySelector('.card[data-depth="0"]');
+    const commit = () => {
+      const item = t.items.shift();
+      store[TARGET[action]].push(item);
+      history.push({ action, item });
+      expanded = false;
+      busy = false;
+      render();
+      toast(`${DONE[action]} · ⌘Z to undo`);
+    };
+    if (reduce || !card) { commit(); return; }
+    busy = true;
+    const w = stage.clientWidth, h = stage.clientHeight;
+    const x = action === "like" ? w : action === "nope" ? -w : 0;
+    const y = action === "later" ? -h : (dy || 0) + 30;
+    const r = action === "like" ? 20 : action === "nope" ? -20 : 0;
+    card.style.animation = "none";
+    card.style.transition = "transform .32s cubic-bezier(.3,.6,.3,1), opacity .32s ease";
+    setStamps(card, action === "like" ? 200 : action === "nope" ? -200 : 0, action === "later" ? -200 : 0);
+    requestAnimationFrame(() => {
+      card.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
+      card.style.opacity = "0";
+    });
+    setTimeout(commit, 300);
+  }
+
+  function attachDrag(card) {
+    let sx = 0, sy = 0, dx = 0, dy = 0, pid = null;
+    card.addEventListener("pointerdown", e => {
+      if (busy || e.button !== 0) return;
+      pid = e.pointerId; sx = e.clientX; sy = e.clientY; dx = 0; dy = 0;
+      card.setPointerCapture(pid);
+      card.style.animation = "none";
+      card.style.transition = "none";
+      card.classList.add("dragging");
+    });
+    card.addEventListener("pointermove", e => {
+      if (e.pointerId !== pid) return;
+      dx = e.clientX - sx; dy = e.clientY - sy;
+      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
+      setStamps(card, dx, dy);
+    });
+    const end = e => {
+      if (e.pointerId !== pid) return;
+      pid = null;
+      card.classList.remove("dragging");
+      const T = 110;
+      if (dx > T) { decide("like", dy); return; }
+      if (dx < -T) { decide("nope", dy); return; }
+      if (dy < -T) { decide("later", dy); return; }
+      card.style.transition = "transform .28s cubic-bezier(.2,.8,.3,1)";
+      card.style.transform = "";
+      setStamps(card, 0, 0);
+      if (Math.abs(dx) < 5 && Math.abs(dy) < 5) toggleExpand();
+    };
+    card.addEventListener("pointerup", end);
+    card.addEventListener("pointercancel", end);
+  }
+
+  function toggleExpand() {
+    if (listById(view)) return;
+    const card = stage.querySelector('.card[data-depth="0"]');
+    if (!card) return;
+    expanded = !expanded;
+    card.classList.toggle("open", expanded);
+    const more = card.querySelector(".more");
+    if (more) more.textContent = expanded ? "Space to collapse" : "Space or click for the full summary";
+  }
+
+  function undo() {
+    if (busy) return;
+    const last = history.pop();
+    if (!last) { toast("Nothing to undo"); return; }
+    const list = store[TARGET[last.action]];
+    const i = list.lastIndexOf(last.item);
+    if (i > -1) list.splice(i, 1);
+    const t = topicById(last.item.topic);
+    t.items.unshift(last.item);
+    view = t.id;
+    expanded = false;
+    render();
+    toast("Back on top of the deck");
+  }
+
+  function takeFromList(listId, id) {
+    const list = store[listId];
+    const i = list.findIndex(x => x.id === id);
+    if (i < 0) return null;
+    const item = list.splice(i, 1)[0];
+    history = history.filter(h => h.item !== item);
+    return item;
+  }
+
+  function restore(id) {
+    const item = takeFromList("dismissed", id);
+    if (!item) return;
+    const t = topicById(item.topic);
+    t.items.unshift(item);
+    render();
+    toast(`Back in ${t.short || t.name}`);
+  }
+
+  function markRead(id) {
+    if (!takeFromList("later", id)) return;
+    render();
+    toast("Marked as read");
+  }
+
+  function selectView(id) {
+    if (busy) return;
+    view = id;
+    expanded = false;
+    render();
+  }
+
+  app.addEventListener("click", e => {
+    const v = e.target.closest("[data-view]");
+    if (v) { selectView(v.dataset.view); return; }
+    const a = e.target.closest("[data-act]");
+    if (a) {
+      if (a.disabled) return;
+      const act = a.dataset.act;
+      if (act === "undo") undo();
+      else if (act === "open") toast("Opens the original in your browser");
+      else if (act === "share") toast("Share sheet: link plus the AI summary");
+      else decide(act, 0);
+      return;
+    }
+    if (e.target.closest("[data-undo]")) { undo(); return; }
+    const r = e.target.closest("[data-restore]");
+    if (r) { restore(r.dataset.restore); return; }
+    const m = e.target.closest("[data-read]");
+    if (m) { markRead(m.dataset.read); return; }
+    if (e.target.closest("[data-share]")) { toast("Share sheet: link plus the AI summary"); return; }
+    if (e.target.closest("[data-add]")) toast("Opens the topic picker");
+  });
+
+  app.addEventListener("keydown", e => {
+    const onButton = e.target !== app && e.target.closest("button");
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch (e.key) {
+      case "ArrowRight": e.preventDefault(); decide("like", 0); break;
+      case "ArrowLeft": e.preventDefault(); decide("nope", 0); break;
+      case "ArrowUp": e.preventDefault(); decide("later", 0); break;
+      case "ArrowDown": e.preventDefault(); break;
+      case " ": if (onButton) return; e.preventDefault(); toggleExpand(); break;
+      case "Enter": if (onButton) return; e.preventDefault(); toast("Opens the original in your browser"); break;
+      case "o": case "O": toast("Opens the original in your browser"); break;
+      case "s": case "S": toast("Share sheet: link plus the AI summary"); break;
+      case "u": case "U": case "Backspace": e.preventDefault(); undo(); break;
+      case "1": case "2": case "3": case "4": selectView(TOPICS[Number(e.key) - 1].id); break;
+    }
+  });
+
+  app.addEventListener("pointerdown", e => { if (!e.target.closest("button")) app.focus({ preventScroll: true }); });
+  app.addEventListener("focusin", () => { app.classList.add("kb"); keyState.textContent = "Keyboard on"; });
+  app.addEventListener("focusout", e => {
+    if (app.contains(e.relatedTarget)) return;
+    app.classList.remove("kb");
+    keyState.textContent = "Click the window to use the keyboard";
+  });
+
+  render();
+})();
+</script>

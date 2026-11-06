@@ -1,0 +1,181 @@
+/*
+ * Readar themes: three styles × two modes, as CSS variables.
+ * [data-style] and [data-mode] can sit on any element, so a subtree (like the
+ * onboarding previews) can render a different theme than the app around it.
+ * Every token must be defined in all six style × mode blocks.
+ */
+
+[data-mode='light'] {
+  color-scheme: light;
+}
+
+[data-mode='dark'] {
+  color-scheme: dark;
+}
+
+[data-style] {
+  color: var(--r-ink);
+  font-family: var(--r-font-body);
+}
+
+/* Native Glass: feels built into macOS and iOS. */
+[data-style='glass'] {
+  --r-font-display:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Geist Variable', system-ui, sans-serif;
+  --r-font-body:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Geist Variable', system-ui, sans-serif;
+  --r-radius-card: 18px;
+  --r-radius-ui: 10px;
+}
+
+[data-style='glass'][data-mode='light'] {
+  --r-app-bg:
+    radial-gradient(120% 90% at 0% 0%, #c4e6ec 0%, transparent 60%),
+    radial-gradient(110% 100% at 100% 100%, #f4d6c4 0%, transparent 58%), #dcd8f1;
+  --r-bg: #eef3f5;
+  --r-win: #fafcfc;
+  --r-surface: #ffffff;
+  --r-surface-2: #edf2f4;
+  --r-ink: #0c1a23;
+  --r-muted: #56666f;
+  --r-line: #d5dfe3;
+  --r-accent: #0b8a9d;
+  --r-accent-ink: #055d6a;
+  --r-accent-soft: #d7eef1;
+  --r-nope: #d23b49;
+  --r-like: #1e8e59;
+  --r-later: #b26f00;
+  --r-glass: rgb(255 255 255 / 0.55);
+  --r-glass-line: rgb(255 255 255 / 0.7);
+  --r-hover: rgb(12 26 35 / 0.05);
+  --r-sel: rgb(12 26 35 / 0.09);
+  --r-shadow-card: 0 1px 2px rgb(12 26 35 / 0.08), 0 22px 44px -18px rgb(12 26 35 / 0.35);
+}
+
+[data-style='glass'][data-mode='dark'] {
+  --r-app-bg:
+    radial-gradient(120% 90% at 0% 0%, #0f3a44 0%, transparent 60%),
+    radial-gradient(110% 100% at 100% 100%, #3a281f 0%, transparent 58%), #17142c;
+  --r-bg: #0b151c;
+  --r-win: #0b151c;
+  --r-surface: #0f1c25;
+  --r-surface-2: #152532;
+  --r-ink: #e3ecf0;
+  --r-muted: #8fa1ab;
+  --r-line: #22343f;
+  --r-accent: #37c5d8;
+  --r-accent-ink: #8de1ec;
+  --r-accent-soft: #0d2d35;
+  --r-nope: #ff6874;
+  --r-like: #3ecf8a;
+  --r-later: #ffbf45;
+  --r-glass: rgb(20 30 38 / 0.6);
+  --r-glass-line: rgb(255 255 255 / 0.08);
+  --r-hover: rgb(255 255 255 / 0.06);
+  --r-sel: rgb(255 255 255 / 0.1);
+  --r-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 22px 44px -18px rgb(0 0 0 / 0.75);
+}
+
+/* Editorial Calm: a daily edition you can finish. */
+[data-style='editorial'] {
+  --r-font-display: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  --r-font-body: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --r-radius-card: 6px;
+  --r-radius-ui: 4px;
+}
+
+[data-style='editorial'][data-mode='light'] {
+  --r-app-bg: #fcfcfb;
+  --r-bg: #fcfcfb;
+  --r-win: #fcfcfb;
+  --r-surface: #ffffff;
+  --r-surface-2: #f2f2ef;
+  --r-ink: #151515;
+  --r-muted: #63676b;
+  --r-line: #e2e2de;
+  --r-accent: #1e3d96;
+  --r-accent-ink: #1e3d96;
+  --r-accent-soft: #e6ebf7;
+  --r-nope: #b4232f;
+  --r-like: #1d7a4e;
+  --r-later: #8a5a00;
+  --r-glass: #fcfcfb;
+  --r-glass-line: #e2e2de;
+  --r-hover: rgb(0 0 0 / 0.04);
+  --r-sel: rgb(0 0 0 / 0.07);
+  --r-shadow-card: 0 1px 0 #e2e2de;
+}
+
+[data-style='editorial'][data-mode='dark'] {
+  --r-app-bg: #111315;
+  --r-bg: #111315;
+  --r-win: #111315;
+  --r-surface: #16191b;
+  --r-surface-2: #1e2225;
+  --r-ink: #ececec;
+  --r-muted: #a1a5a9;
+  --r-line: #2b2f33;
+  --r-accent: #93abff;
+  --r-accent-ink: #b8c8ff;
+  --r-accent-soft: #1d2540;
+  --r-nope: #ff7a85;
+  --r-like: #5fd39a;
+  --r-later: #e6b65c;
+  --r-glass: #111315;
+  --r-glass-line: #2b2f33;
+  --r-hover: rgb(255 255 255 / 0.05);
+  --r-sel: rgb(255 255 255 / 0.08);
+  --r-shadow-card: 0 1px 0 #2b2f33;
+}
+
+/* Playful Deck: bold colors, big emoji, springy cards. */
+[data-style='playful'] {
+  --r-font-display: 'Bricolage Grotesque Variable', 'Geist Variable', system-ui, sans-serif;
+  --r-font-body: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --r-radius-card: 28px;
+  --r-radius-ui: 16px;
+}
+
+[data-style='playful'][data-mode='light'] {
+  --r-app-bg: #fff4e8;
+  --r-bg: #fff4e8;
+  --r-win: #fff4e8;
+  --r-surface: #ffffff;
+  --r-surface-2: #ffe9d4;
+  --r-ink: #2b1607;
+  --r-muted: #7a5a44;
+  --r-line: #f0d6bf;
+  --r-accent: #e8492b;
+  --r-accent-ink: #b8361c;
+  --r-accent-soft: #ffe0d5;
+  --r-nope: #ef3e52;
+  --r-like: #14a56f;
+  --r-later: #e08a00;
+  --r-glass: #fff4e8;
+  --r-glass-line: #f0d6bf;
+  --r-hover: rgb(43 22 7 / 0.05);
+  --r-sel: rgb(43 22 7 / 0.09);
+  --r-shadow-card: 0 18px 36px -14px rgb(232 73 43 / 0.45);
+}
+
+[data-style='playful'][data-mode='dark'] {
+  --r-app-bg: #1e140c;
+  --r-bg: #1e140c;
+  --r-win: #1e140c;
+  --r-surface: #2a1d12;
+  --r-surface-2: #34251a;
+  --r-ink: #ffe9d6;
+  --r-muted: #c9a88f;
+  --r-line: #46321f;
+  --r-accent: #ff7a5c;
+  --r-accent-ink: #ffb39f;
+  --r-accent-soft: #3a2216;
+  --r-nope: #ff6b7a;
+  --r-like: #3fd99b;
+  --r-later: #ffbe55;
+  --r-glass: #1e140c;
+  --r-glass-line: #46321f;
+  --r-hover: rgb(255 255 255 / 0.05);
+  --r-sel: rgb(255 255 255 / 0.09);
+  --r-shadow-card: 0 18px 36px -14px rgb(0 0 0 / 0.6);
+}

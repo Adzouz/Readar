@@ -1,0 +1,23 @@
+[package]
+name = "readar"
+version = "0.0.1"
+description = "Readar: watch your topics, read Claude summaries, swipe through what's new."
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[lib]
+# The `_lib` suffix keeps the library name distinct from the binary on Windows.
+name = "readar_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.12.5", features = [] }
+tauri-plugin-log = "2"
+tauri-plugin-opener = "2"

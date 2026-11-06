@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-style="glass" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Readar</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong colors.
+      ;(function () {
+        try {
+          var saved = JSON.parse(localStorage.getItem('readar.theme') || '{}').state || {}
+          var mode = saved.mode || 'system'
+          if (mode === 'system') {
+            mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          }
+          document.documentElement.dataset.style = saved.style || 'glass'
+          document.documentElement.dataset.mode = mode
+        } catch (_) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

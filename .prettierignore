@@ -1,0 +1,6 @@
+node_modules
+dist
+pnpm-lock.yaml
+apps/client/src-tauri/target
+apps/client/src-tauri/gen
+docs/brief.html

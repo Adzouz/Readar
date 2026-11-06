@@ -1,0 +1,33 @@
+{
+  "name": "readar",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Readar: pick topics, get Claude summaries of what's new, swipe through them.",
+  "type": "module",
+  "packageManager": "pnpm@10.19.0",
+  "scripts": {
+    "dev": "pnpm --filter @readar/client dev",
+    "app": "pnpm --filter @readar/client tauri dev",
+    "app:ios": "pnpm --filter @readar/client tauri ios dev",
+    "build": "pnpm --filter @readar/client build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "oxlint --deny-warnings .",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:feeds": "node scripts/check-feeds.ts",
+    "ui:check": "node scripts/ui/check-layout.mjs",
+    "ui:shots": "node scripts/ui/screenshots.mjs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "oxlint": "^1.91.0",
+    "playwright-core": "^1.65.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+*.log
+.DS_Store
+
+# Secrets: only *.example env files are committed
+.env
+.env.*
+!.env.example
+
+# Tauri build output
+apps/client/src-tauri/target
+
+# UI screenshots from `pnpm ui:shots`
+.screenshots
