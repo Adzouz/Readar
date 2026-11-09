@@ -192,7 +192,8 @@ In order, for the next sessions:
    - Silent fallback in `apps/client/src/sync/account.ts` (`SIGNED_OUT` handler): when Supabase drops a signed-in email session, the app moves to a new anonymous session without saying so. Remember that the session had an email and show a toast ("Signed out. Sign in again to keep syncing."), with a test.
 4. **Claude key and on-device summaries.** A keychain-backed Tauri command on Mac and iPhone, browser storage with a clear warning on web; decide the call path (the SDK in the webview, or a Rust-side request so the key never reaches JavaScript). Set a strict CSP first. Add a skippable "Connect Claude" onboarding step and a Settings entry, and validate the key with one cheap call. Run the summary spike on ~50 real articles (quality, tokens, cost).
 5. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
-6. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
+6. **Source health (done 9 Nov).** The sources screen shows what each source brought, or why it brings nothing (no feed found, blocked, rate limited, site down); the topic view warns when sources aren't bringing articles, and each topic header opens its sources. Sources not fetched yet say "Syncing…" only while a worker runs (`worker_heartbeat`, cleared when it exits).
+7. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
 
 ### Known limitations
 
@@ -206,6 +207,7 @@ In order, for the next sessions:
 - Signing in to an account that already has a setup adopts that account; the anonymous session's lists stay behind.
 - In the Mac app, Share copies the link; browsers use Web Share. The native share sheet comes with the iPhone work.
 - The Tauri CSP is `null`. Tighten it, and allow the inline theme script in `index.html` by hash, before API keys land.
+- Source health counts every article a source ever brought, so "N articles" only grows and "No recent articles found" means none ever. Count a recent window instead.
 - The iOS build stops with "iOS platform not installed" until Xcode's iOS platform is downloaded.
 
 ### Phase 0 — Foundations (now)

@@ -52,6 +52,15 @@ async function beat(): Promise<void> {
   }
 }
 
+/** Clears the heartbeat on exit, so the app stops saying "Syncing…" right away. */
+async function rest(): Promise<void> {
+  try {
+    await sql`delete from public.worker_heartbeat`
+  } catch (error) {
+    log.warn(`heartbeat: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 /** Fetches every due source, batch after batch. Returns how many items were added. */
 async function pass(): Promise<number> {
   await beat()
@@ -83,5 +92,6 @@ async function main(): Promise<void> {
 try {
   await main()
 } finally {
+  await rest()
   await sql.end({ timeout: 5 })
 }

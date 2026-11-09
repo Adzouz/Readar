@@ -48,8 +48,6 @@ export function SourcePicker() {
   const sourcesFrom = useSetup((s) => s.sourcesFrom)
   const topics = followedTopics({ topicIds, keywords })
 
-  // Fresh fetch results when the screen opens, then now and again: the worker fetches a new link
-  // within minutes, and the first call can fail while the session is still starting.
   // Opened from a topic: show that topic's sources first.
   useEffect(() => {
     if (sourcesFrom) {
@@ -57,6 +55,8 @@ export function SourcePicker() {
     }
   }, [sourcesFrom])
 
+  // Fresh fetch results when the screen opens, then now and again: the worker fetches a new link
+  // within minutes, and the first call can fail while the session is still starting.
   useEffect(() => {
     void loadSourceHealth()
     const timer = setInterval(() => void loadSourceHealth(), HEALTH_REFRESH_MS)
