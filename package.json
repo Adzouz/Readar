@@ -19,6 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:feeds": "node scripts/check-feeds.ts",
+    "spike:summaries": "node scripts/summary-spike.ts",
     "ui:check": "node scripts/ui/check-layout.mjs",
     "ui:shots": "node scripts/ui/screenshots.mjs"
   },
@@ -29,10 +30,13 @@
     ]
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "oxlint": "^1.91.0",
     "playwright-core": "^1.65.0",
+    "postgres": "^4.1.0",
     "prettier": "^3.9.10",
     "supabase": "^3.0.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "zod": "^4.6.7"
   }
 }

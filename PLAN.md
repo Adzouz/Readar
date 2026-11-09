@@ -9,7 +9,7 @@
 Readar watches the topics you care about (blogs, news sites, YouTube, podcasts, any web page) and turns everything new into short AI summaries you triage like a deck of cards.
 
 - Each topic is its own lane, so following many topics never turns into one noisy feed.
-- Cards: ← dismiss (goes to Dismissed, restorable), → like (Liked), ↑ read later (Read later). Space shows the full summary, ↵ opens the original, S shares, ⌘Z undoes.
+- Cards: ← dismiss (goes to Dismissed, restorable), → like (Liked), ↑ read later (Read later). A summarizes with Claude (on demand), Space shows the full summary, ↵ opens the original, S shares, ⌘Z undoes.
 - Every topic comes with suggested sources. People add their own (URL, YouTube channel, keyword, OPML) and switch any source on or off.
 - Lists, topics, sources and settings sync across Mac, iPhone and web.
 
@@ -68,7 +68,7 @@ After the MVP, the public launch adds: Free / Pro / Pro + own key plans, Readar 
 ### Deck
 
 - Card: content type, source, age, length, relevance (1–3 bars), title, AI TL;DR, three key points (Space), "why for you", "also covered by N sources".
-- Keyboard (Mac, web): ← → ↑ (or h, l, k), Space, ↵/O, S, ⌘Z/U, 1–9 to switch topic, ⌘, for settings; ⌘K command bar and ? shortcut sheet later.
+- Keyboard (Mac, web): ← → ↑ (or h, l, k), A, Space, ↵/O, S, ⌘Z/U, 1–9 to switch topic, ⌘, for settings; ⌘K command bar and ? shortcut sheet later.
 - iPhone: swipe left, right or up, tap to expand, haptics, share sheet, Safari view.
 - Buttons under the card for people who don't swipe. Undo is unlimited.
 - Each topic ends with an "All caught up" state.
@@ -108,12 +108,15 @@ Summaries are written by the client, not the worker (see §6).
 ## 6. AI (MVP)
 
 - Each user's own Claude Console API key. Mac and iPhone: stored in the OS keychain through a small Tauri command. Web: browser storage, with a clear warning that it is weaker.
-- While the user reads, the client asks Claude Sonnet 5.5 for summaries of the next ~5 cards (input: title + extracted text from the worker, or the feed excerpt).
-- Call path to settle in Phase 0: the official TypeScript SDK in the webview, or a Rust-side call so the key never enters JavaScript. Either way, a strict CSP.
+- Summaries are on demand (decided 6 Nov), so the user only pays for cards they care about: a Summarize button on every card and in the lists, shortcut `A` in every style. Settings has a "Summarize ahead" switch, off by default, that summarizes the next ~5 cards automatically. Input: title + extracted text from the worker, or the feed excerpt; text over 20,000 characters is cut.
+- Call path (decided 6 Nov): the official TypeScript SDK in the webview on every platform, one code path. On Mac and iPhone the key is read from the keychain only when a call is made; a strict CSP limits connections to Supabase and `api.anthropic.com`. A Rust-side call was rejected: Rust has no official SDK, and it would mean two code paths.
+- "Connect Claude" is the last, skippable onboarding step (after sources), plus a Settings entry.
+- Prompt and output schema live in `packages/core/src/summary.ts`, shared by the client and `pnpm spike:summaries` (dev only, reads `ANTHROPIC_API_KEY` from the root `.env`, writes its report to the OS temp directory).
+- "No credit" arrives as HTTP 400 `invalid_request_error`, not 402: the client must tell it apart from other 400s to show the right fix.
 - Output: structured JSON (`output_config.format`, or `messages.parse` with zod): `tldr` (≤ 30 words), `points` (3), `contentType`, `readingMinutes`. "Why for you" comes from matched topics and taste, without the model.
 - Summaries are saved to Supabase as private rows of that user and sync to their other devices. No shared cache in the MVP: every summary is paid by the key owner and only serves them (Anthropic forbids using one user's credentials for others).
 - Effort starts at `low`; server-side refusal fallback on (`fallbacks: "default"`). API version 2026-10-21 rejects sampling parameters, and Sonnet 5.5 rejects `thinking: disabled`. Check the current SDK docs when implementing.
-- Cost to the user: about $9 per 1,000 summaries; a heavy reader (50 cards a day) about $13.50 a month.
+- Cost to the user: about $9 per 1,000 summaries (to confirm with the spike); 20 summaries a day is about $5 a month.
 - No key: cards show the feed's own excerpt and a "Connect Claude" prompt. Key errors (invalid, no credit): summaries pause, excerpts show, Settings explains the fix.
 
 ## 7. Architecture (MVP)
@@ -206,8 +209,8 @@ In order, for the next sessions:
 - A setup save that finishes after a newer local change marks it saved; quitting within 800 ms can lose that change on the next launch. Fix with a change counter.
 - Signing in to an account that already has a setup adopts that account; the anonymous session's lists stay behind.
 - In the Mac app, Share copies the link; browsers use Web Share. The native share sheet comes with the iPhone work.
-- The Tauri CSP is `null`. Tighten it, and allow the inline theme script in `index.html` by hash, before API keys land.
 - Source health counts every article a source ever brought, so "N articles" only grows and "No recent articles found" means none ever. Count a recent window instead.
+- The web build has no CSP yet (the Tauri apps do): send the same policy as HTTP headers when the web app is hosted. Article images will need an `img-src` entry when they land.
 - The iOS build stops with "iOS platform not installed" until Xcode's iOS platform is downloaded.
 
 ### Phase 0 — Foundations (now)
@@ -249,7 +252,7 @@ Android, a newsletter inbox, Bluesky and Mastodon, a morning briefing notificati
 
 ## 12. Open items
 
-- Claude call path on device: SDK in the webview vs a Rust-side call.
+- ~~Claude call path on device~~: decided, SDK in the webview (§6).
 - Embedding model: small open model in the worker or a hosted API.
 - Hosts for the worker and the web app.
 - Speech-to-text provider for podcasts (or transcripts-only at first).

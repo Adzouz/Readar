@@ -15,6 +15,7 @@ Guide for coding agents and contributors working on Readar.
 | `apps/client/src/onboarding` | Setup flow (style, topics, sources), setup store, deck wiring            |
 | `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                       |
 | `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox              |
+| `apps/client/src/claude`     | The user's Claude key (keychain on Mac/iPhone, browser storage on web)   |
 | `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)      |
 | `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)       |
 | `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)          |
@@ -59,9 +60,10 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 - `useStyle()` reads the closest `ThemeScope`, so previews can render a different theme than the app. Use it instead of reading the theme store in components.
 - zustand selectors must return stable references (no new arrays or objects); derive in the component body instead. Don't call `useSomething.getState()` in a component body (oxlint `react/hooks` flags it); use selectors there and `getState()` only in event handlers or outside React.
 - Layout: the page itself never scrolls (`html, body { overflow: hidden }`). Every scroll area must be `relative` so absolutely positioned children (like `sr-only` labels) stay inside it; otherwise the Mac app shows a double scrollbar.
-- Persisted client state: `readar.theme` (style, mode), `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links), `readar.sync` (setup changes not yet saved), `readar.deck` (cached cards and lists), `readar.outbox` (swipes not yet saved), `readar.auth` (Supabase session). `index.html` reads `readar.theme` before first paint, so keep its shape.
+- Persisted client state: `readar.theme` (style, mode), `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links), `readar.sync` (setup changes not yet saved), `readar.deck` (cached cards and lists), `readar.outbox` (swipes not yet saved), `readar.auth` (Supabase session), `readar.claude` (web only: the user's Claude key; Mac and iPhone keep it in the keychain). `index.html` reads `readar.theme` before first paint, so keep its shape.
 - Database: change the schema only through a new migration file. Shared tables get no client grants; expose shared content through security-definer functions with `set search_path = ''`. Update `apps/client/src/lib/database.ts` to match.
 - Respect `prefers-reduced-motion`: gestures still work, animations are skipped.
+- CSP (`src-tauri/tauri.conf.json`): `csp` is strict for builds, `devCsp` allows Vite's inline scripts and styles. Editing the theme script in `index.html` changes its hash: update `script-src` (`src/lib/csp.test.ts` fails until you do). A new remote origin (images, APIs) needs a `connect-src` or `img-src` entry.
 - Glass effects are CSS only (no macOS private APIs), to keep the Mac App Store possible.
 
 ## Claude
