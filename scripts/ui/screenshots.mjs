@@ -34,6 +34,12 @@ const shots = [
     ...desktop,
   },
   {
+    name: '03b-claude-dark',
+    theme: { style: 'editorial', mode: 'dark' },
+    setup: { step: 'claude', completed: false, ...picks },
+    ...desktop,
+  },
+  {
     name: '04-deck-glass-light',
     theme: { style: 'glass', mode: 'light' },
     setup: done,

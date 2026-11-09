@@ -23,6 +23,7 @@ const screens = [
   { name: 'style', setup: null },
   { name: 'topics', setup: { step: 'topics', completed: false, ...picks } },
   { name: 'sources', setup: { step: 'sources', completed: false, ...picks } },
+  { name: 'claude', setup: { step: 'claude', completed: false, ...picks } },
   { name: 'deck', setup: { step: 'done', completed: true, ...picks } },
   {
     name: 'liked-list',

@@ -10,7 +10,7 @@ type ProfileRow = {
   user_id: string
   style: 'glass' | 'editorial' | 'playful' | null
   mode: 'system' | 'light' | 'dark' | null
-  setup_step: 'style' | 'topics' | 'sources' | 'done'
+  setup_step: 'style' | 'topics' | 'sources' | 'claude' | 'done'
   setup_completed: boolean
   disabled_source_ids: string[]
   updated_at: string

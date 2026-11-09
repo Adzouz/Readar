@@ -80,7 +80,9 @@ export function SourcePicker() {
           <span className="ml-auto text-[13px] text-muted tabular-nums">
             {sourcesOn} {sourcesOn === 1 ? 'source' : 'sources'} on
           </span>
-          <PrimaryButton onClick={finish}>{completed ? 'Save' : 'Start reading'}</PrimaryButton>
+          <PrimaryButton onClick={completed ? finish : () => goTo('claude')}>
+            {completed ? 'Save' : 'Continue'}
+          </PrimaryButton>
         </>
       }
     >

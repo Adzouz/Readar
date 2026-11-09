@@ -9,7 +9,7 @@ import {
 } from '@readar/core'
 import type { Topic } from '@/deck/types'
 
-export type SetupStep = 'style' | 'topics' | 'sources' | 'done'
+export type SetupStep = 'style' | 'topics' | 'sources' | 'claude' | 'done'
 
 /** A custom topic built from a keyword the user wants to watch. */
 export interface KeywordTopic {
