@@ -1,0 +1,88 @@
+{
+  "numTotalTestSuites": 3,
+  "numPassedTestSuites": 1,
+  "numFailedTestSuites": 2,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 4,
+  "numPassedTests": 2,
+  "numFailedTests": 2,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1794233695855,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["applyPending"],
+          "fullName": "applyPending keeps the server lists when nothing is pending",
+          "status": "passed",
+          "title": "keeps the server lists when nothing is pending",
+          "duration": 0.5432500000000005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": ["applyPending"],
+          "fullName": "applyPending applies swipes, undos and reads the server has not seen yet",
+          "status": "passed",
+          "title": "applies swipes, undos and reads the server has not seen yet",
+          "duration": 0.27145799999999554,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": ["loadContent"],
+          "fullName": "loadContent keeps a swipe sent while the reload was in flight",
+          "status": "failed",
+          "title": "keeps a swipe sent while the reload was in flight",
+          "duration": 5004.257458,
+          "failureMessages": [
+            "Error: Test timed out in 5000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2700:43)\n    at Object.<anonymous> (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2717:16)\n    at Object.<anonymous> (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2486:28)\n    at chain (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:1870:14)\n    at /Users/adrienlepoutre/Sites/Strapi/apps/sonar/apps/client/src/sync/content.test.ts:55:3\n    at file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2781:52\n    at runWithSuite (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:3267:8)\n    at Object.collect (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2781:22)\n    at Object.collect (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2786:51)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+          ],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": ["loadContent"],
+          "fullName": "loadContent keeps a card marked read during the reload out of its list and its deck",
+          "status": "failed",
+          "title": "keeps a card marked read during the reload out of its list and its deck",
+          "duration": 5001.027625000001,
+          "failureMessages": [
+            "Error: Test timed out in 5000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2700:43)\n    at Object.<anonymous> (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2717:16)\n    at Object.<anonymous> (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2486:28)\n    at chain (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:1870:14)\n    at /Users/adrienlepoutre/Sites/Strapi/apps/sonar/apps/client/src/sync/content.test.ts:84:3\n    at file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2781:52\n    at runWithSuite (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:3267:8)\n    at Object.collect (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2781:22)\n    at Object.collect (file:///Users/adrienlepoutre/Sites/Strapi/apps/sonar/node_modules/.pnpm/vitest@5.1.0_@types+node@26.6.6_vite@8.3.6_@types+node@26.6.6_jiti@2.7.0_/node_modules/vitest/dist/chunks/run.CjdgFZiW.js:2786:51)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+          ],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        }
+      ],
+      "startTime": 1794233695958,
+      "endTime": 1794233705964.0276,
+      "status": "failed",
+      "message": "",
+      "name": "/Users/adrienlepoutre/Sites/Strapi/apps/sonar/apps/client/src/sync/content.test.ts"
+    }
+  ]
+}

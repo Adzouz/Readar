@@ -34,6 +34,8 @@ export interface SetupState {
   /** Suggested sources the user switched off. */
   disabledSourceIds: string[]
   userSources: UserSource[]
+  /** The topic whose Sources button opened the sources screen: Back returns to it. Not saved. */
+  sourcesFrom: string | null
   goTo: (step: SetupStep) => void
   finish: () => void
   toggleTopic: (id: string) => void
@@ -67,9 +69,10 @@ export const useSetup = create<SetupState>()(
       keywords: [],
       disabledSourceIds: [],
       userSources: [],
+      sourcesFrom: null,
 
-      goTo: (step) => set({ step }),
-      finish: () => set({ step: 'done', completed: true }),
+      goTo: (step) => set({ step, sourcesFrom: null }),
+      finish: () => set({ step: 'done', completed: true, sourcesFrom: null }),
       toggleTopic: (id) => set((state) => ({ topicIds: toggle(state.topicIds, id) })),
 
       addKeyword: (input) => {
@@ -158,13 +161,27 @@ export function suggestedSources(topicId: string, keywords: KeywordTopic[]): Cat
   return watch ? keywordSources(watch.keyword) : []
 }
 
-/** How many sources will be read for a topic: suggestions left on plus the user's links. */
-export function activeSourceCount(
+/** The sources read for a topic: ids of suggestions left on, then the URLs of the user's links. */
+export function activeSourceIds(
   state: Pick<SetupState, 'keywords' | 'disabledSourceIds' | 'userSources'>,
   topicId: string,
-): number {
-  const suggested = suggestedSources(topicId, state.keywords).filter(
-    (source) => !state.disabledSourceIds.includes(source.id),
-  ).length
-  return suggested + state.userSources.filter((source) => source.topicId === topicId).length
+): string[] {
+  const suggested = suggestedSources(topicId, state.keywords)
+    .filter((source) => !state.disabledSourceIds.includes(source.id))
+    .map((source) => source.id)
+  const links = state.userSources
+    .filter((source) => source.topicId === topicId)
+    .map((source) => source.url)
+  return [...suggested, ...links]
+}
+
+/** How many sources will be read for a topic: suggestions left on plus the user's links. */
+export const activeSourceCount = (
+  state: Pick<SetupState, 'keywords' | 'disabledSourceIds' | 'userSources'>,
+  topicId: string,
+): number => activeSourceIds(state, topicId).length
+
+/** Opens the sources screen at one topic, from that topic's view. Back returns to the topic. */
+export function openSources(topicId: string): void {
+  useSetup.setState({ step: 'sources', sourcesFrom: topicId })
 }

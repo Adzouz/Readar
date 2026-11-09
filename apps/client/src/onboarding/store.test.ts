@@ -4,6 +4,7 @@ import {
   followedTopics,
   keywordTopicId,
   normalizeUrl,
+  openSources,
   suggestedSources,
   useSetup,
 } from './store'
@@ -83,5 +84,22 @@ describe('followed topics and sources', () => {
       'news.google.com',
       'news.ycombinator.com',
     ])
+  })
+})
+
+describe('openSources', () => {
+  it('remembers the topic it came from until the screen is left', () => {
+    useSetup.setState({ step: 'done', completed: true })
+    openSources('ai')
+    expect(useSetup.getState()).toMatchObject({ step: 'sources', sourcesFrom: 'ai' })
+    useSetup.getState().goTo('done')
+    expect(useSetup.getState()).toMatchObject({ step: 'done', sourcesFrom: null })
+  })
+
+  it('forgets it when the topics step opens the screen', () => {
+    openSources('ai')
+    useSetup.getState().goTo('topics')
+    useSetup.getState().goTo('sources')
+    expect(useSetup.getState().sourcesFrom).toBeNull()
   })
 })

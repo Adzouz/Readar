@@ -3,12 +3,14 @@ import { useState, type FormEvent } from 'react'
 import { CATALOG, type CatalogTopic } from '@readar/core'
 import { cn } from '@/lib/cn'
 import { Frame, PrimaryButton, QuietButton } from './Frame'
-import { useSetup } from './store'
+import { activeSourceCount, useSetup } from './store'
 
 /** Onboarding step 2: catalog topics as big tiles, plus keyword watches. */
 export function TopicPicker() {
   const topicIds = useSetup((s) => s.topicIds)
   const keywords = useSetup((s) => s.keywords)
+  const disabledSourceIds = useSetup((s) => s.disabledSourceIds)
+  const userSources = useSetup((s) => s.userSources)
   const completed = useSetup((s) => s.completed)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
@@ -53,6 +55,12 @@ export function TopicPicker() {
             key={topic.id}
             topic={topic}
             selected={topicIds.includes(topic.id)}
+            // Followed topics count what is actually read: suggestions left on plus added links.
+            sourceCount={
+              topicIds.includes(topic.id)
+                ? activeSourceCount({ keywords, disabledSourceIds, userSources }, topic.id)
+                : topic.sources.length
+            }
             onToggle={() => toggleTopic(topic.id)}
           />
         ))}
@@ -124,10 +132,12 @@ export function TopicPicker() {
 function TopicTile({
   topic,
   selected,
+  sourceCount,
   onToggle,
 }: {
   topic: CatalogTopic
   selected: boolean
+  sourceCount: number
   onToggle: () => void
 }) {
   return (
@@ -149,7 +159,9 @@ function TopicTile({
       </span>
       <span className="font-display text-[16px] leading-tight font-bold">{topic.name}</span>
       <span className="text-[12.5px] leading-snug text-muted">{topic.covers}</span>
-      <span className="mt-auto pt-1 text-[12px] text-muted">{topic.sources.length} sources</span>
+      <span className="mt-auto pt-1 text-[12px] text-muted">
+        {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
+      </span>
       <span
         aria-hidden
         className={cn(
