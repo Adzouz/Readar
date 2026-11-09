@@ -7,7 +7,7 @@ const TYPING = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 /**
  * Keyboard map, identical in every theme:
  * ← / h dismiss · → / l like · ↑ / k read later · Space full summary · ↵ / o open
- * s share · ⌘Z / u / Backspace undo · 1–9 switch topic · ⌘, settings
+ * s share · a summarize · ⌘Z / u / Backspace undo · 1–9 switch topic · ⌘, settings
  */
 export function useDeckKeys(actions: DeckActions, onSettings: () => void, enabled: boolean) {
   useEffect(() => {
@@ -62,6 +62,9 @@ export function useDeckKeys(actions: DeckActions, onSettings: () => void, enable
           break
         case 's':
           actions.share()
+          break
+        case 'a':
+          actions.summarize()
           break
         case 'u':
         case 'Backspace':

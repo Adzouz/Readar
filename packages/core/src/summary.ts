@@ -5,6 +5,10 @@ import { z } from 'zod'
 /** The model the owner picked (PLAN.md §3). Don't change it without asking. */
 export const SUMMARY_MODEL = 'claude-sonnet-5-5'
 
+/** Bump when the prompt or schema changes: saved summaries keep the version they were written
+ * with, and cards only show the current one. */
+export const SUMMARY_PROMPT_VERSION = 1
+
 /** Article text beyond this many characters is cut, to keep the cost per card predictable. */
 export const SUMMARY_INPUT_CHARS = 20_000
 

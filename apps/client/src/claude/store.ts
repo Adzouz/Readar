@@ -1,6 +1,7 @@
 // Whether this device has a Claude key, for Settings, onboarding and (next) the Summarize button.
 // The key itself is never kept in memory here: it is read from storage when a call needs it.
 import { create } from 'zustand'
+import { useSummaries } from './summaries'
 import { forgetClaudeKey, isClaudeKeyShape, readClaudeKey, saveClaudeKey } from './key'
 
 interface ClaudeState {
@@ -40,6 +41,8 @@ export async function connectClaude(raw: string): Promise<string | null> {
     return error instanceof Error ? error.message : "Readar couldn't save the key."
   }
   useClaude.setState({ status: 'connected', hint: hintOf(key) })
+  // A new key may fix what paused summaries (rejected key, no credit).
+  useSummaries.setState({ paused: null, failed: {} })
   return null
 }
 

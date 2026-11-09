@@ -2,6 +2,7 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { SAMPLE_ITEMS } from '@/data/sample'
 import { supabase } from '@/lib/supabase'
+import { withSummary, type CardSummary } from './summary'
 import {
   LIST_FOR_ACTION,
   type Action,
@@ -57,6 +58,8 @@ export interface DeckState {
    * undo history still points to are kept so ⌘Z keeps working.
    */
   setContent: (items: Item[], lists: Record<ListId, string[]>) => void
+  /** Swaps a card's excerpt for Claude's summary, wherever the card is. */
+  applySummary: (itemId: string, summary: CardSummary) => void
 }
 
 const NO_LISTS: Record<ListId, string[]> = { liked: [], later: [], dismissed: [] }
@@ -188,6 +191,12 @@ export function createDeckStore(data: DeckData) {
         if (kept && !next[kept.id]) next[kept.id] = kept
       }
       set({ items: next, lists, ...deal(topics, dealt, lists) })
+    },
+
+    applySummary: (itemId, summary) => {
+      const item = get().items[itemId]
+      if (!item) return
+      set({ items: { ...get().items, [itemId]: withSummary(item, summary) } })
     },
   }))
 }

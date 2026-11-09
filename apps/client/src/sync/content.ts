@@ -6,6 +6,7 @@ import { LIST_FOR_ACTION, type Item, type ListId, type Topic } from '@/deck/type
 import { supabase } from '@/lib/supabase'
 import { toItem } from './items'
 import { loadSourceHealth } from './sourceHealth'
+import { fetchSummaries, forgetSummaries, withKnownSummaries } from './summaries'
 
 const CACHE_KEY = 'readar.deck'
 const OUTBOX_KEY = 'readar.outbox'
@@ -221,6 +222,12 @@ async function loadInto(
     items.push(item)
     server[listId].push(row.id)
   }
+  // Saved summaries replace the excerpts before the cards show, so they never flash. Done before
+  // reading the swipes below, which must stay the last step before the cards are set.
+  await fetchSummaries(items.map((item) => item.id)).catch((failure: unknown) => {
+    console.warn('Readar: summaries not loaded.', failure)
+  })
+  if (run !== generation) return
   const decisions: Outbox = { ...outbox, ...log }
   // A card swiped during the load may be missing from the fresh decks: keep the one on screen.
   const current = deckStore.getState().items
@@ -230,8 +237,10 @@ async function loadInto(
     if (item && !fresh.has(id) && entry.state !== 'read') items.push(item)
   }
   // A card marked read belongs to no list and no deck, even if the server still lists it.
-  const unique = [...new Map(items.map((item) => [item.id, item])).values()].filter(
-    (item) => decisions[item.id]?.state !== 'read',
+  const unique = withKnownSummaries(
+    [...new Map(items.map((item) => [item.id, item])).values()].filter(
+      (item) => decisions[item.id]?.state !== 'read',
+    ),
   )
   const known = new Set(unique.map((item) => item.id))
   // Swipes made while this load was in flight win over the server copy.
@@ -253,6 +262,7 @@ async function loadInto(
 /** Removes everything this module keeps on the device (used on sign-out). */
 export function clearLocalContent(): void {
   outbox = {}
+  forgetSummaries()
   for (const key of [CACHE_KEY, OUTBOX_KEY]) {
     try {
       localStorage.removeItem(key)

@@ -138,7 +138,7 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
         <h3 className="mt-4 mb-2 text-[12px] font-semibold tracking-[0.08em] text-muted uppercase">
           Claude
         </h3>
-        <ClaudeKey />
+        <ClaudeKey showAhead />
       </div>
     </div>
   )

@@ -51,7 +51,10 @@ function EditorialCard({ item, expanded }: CardProps) {
       <h2 className="font-display text-[27px] leading-[1.14] font-semibold text-balance">
         {item.title}
       </h2>
-      <p className="text-[15.5px] leading-relaxed text-muted">{item.tldr}</p>
+      <p className="text-[15.5px] leading-relaxed text-muted">
+        {item.summarized && <AiBadge />}
+        {item.tldr}
+      </p>
       {expanded && <Points points={item.points} className="list-decimal pl-5 marker:text-muted" />}
       <Footer item={item} expanded={expanded} />
     </article>
@@ -83,7 +86,10 @@ function PlayfulCard({ item, topic, expanded }: CardProps) {
         {expanded ? (
           <Points points={item.points} className="list-disc pl-5 text-[14px]" />
         ) : (
-          <p className="text-[14.5px] leading-snug opacity-95">{item.tldr}</p>
+          <p className="text-[14.5px] leading-snug opacity-95">
+            {item.summarized && <AiBadge />}
+            {item.tldr}
+          </p>
         )}
         <p className="text-[12px] opacity-85">{dots(item.source, item.age)}</p>
       </div>
@@ -146,7 +152,7 @@ function Signal({ level }: { level: 1 | 2 | 3 }) {
   )
 }
 
-function AiBadge() {
+export function AiBadge() {
   return (
     <span className="mr-1.5 inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 align-[1px] text-[11px] font-bold text-accent-ink">
       <Sparkles size={10} aria-hidden />

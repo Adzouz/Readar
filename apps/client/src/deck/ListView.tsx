@@ -1,5 +1,9 @@
+import { LoaderCircle, Sparkles } from 'lucide-react'
+import { useSummaries } from '@/claude/summaries'
 import { openExternal } from '@/lib/platform'
 import { useToast } from '@/shell/toast'
+import { summarizeItem } from './actions'
+import { AiBadge } from './cards'
 import { Empty } from './Empty'
 import { LIST_META, TYPE_LABEL } from './lists'
 import { StageHeader } from './StageHeader'
@@ -13,6 +17,7 @@ export function ListView({ listId }: { listId: ListId }) {
   const items = useDeck((s) => s.items)
   const topics = useDeck((s) => s.topics)
   const show = useToast((s) => s.show)
+  const pending = useSummaries((s) => s.pending)
   const meta = LIST_META[listId]
   const rows = [...ids].reverse()
 
@@ -51,7 +56,29 @@ export function ListView({ listId }: { listId: ListId }) {
                   <p className="text-[12.5px] text-muted">
                     {item.source} · {TYPE_LABEL[item.type]} · {topicName}
                   </p>
+                  {item.summarized && (
+                    <p className="mt-1 text-[13px] leading-snug">
+                      <AiBadge />
+                      {item.tldr}
+                    </p>
+                  )}
                 </div>
+                {!item.summarized && (
+                  <button
+                    type="button"
+                    aria-label={`Summarize ${item.title}`}
+                    title="Summarize with Claude"
+                    disabled={pending[id]}
+                    onClick={() => void summarizeItem(item, show)}
+                    className="grid size-8 shrink-0 place-items-center rounded-full text-accent hover:bg-hover disabled:opacity-60"
+                  >
+                    {pending[id] ? (
+                      <LoaderCircle size={15} aria-hidden className="motion-safe:animate-spin" />
+                    ) : (
+                      <Sparkles size={15} aria-hidden />
+                    )}
+                  </button>
+                )}
                 {listId === 'dismissed' && (
                   <RowButton
                     onClick={() => {

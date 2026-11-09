@@ -1,13 +1,22 @@
 import { ExternalLink, KeyRound, ShieldAlert } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { openExternal } from '@/lib/platform'
+import { Switch } from '@/lib/Switch'
 import { keyStorage } from './key'
 import { connectClaude, disconnectClaude, loadClaudeStatus, useClaude } from './store'
+import { AHEAD, useSummaries, useSummarizeAhead } from './summaries'
 
 const CONSOLE_KEYS_URL = 'https://console.anthropic.com/settings/keys'
 
 /** Connect, show or remove the Claude key. Used by the onboarding step and Settings. */
-export function ClaudeKey({ onConnected }: { onConnected?: () => void }) {
+export function ClaudeKey({
+  onConnected,
+  showAhead = false,
+}: {
+  onConnected?: () => void
+  /** Settings also shows the "Summarize ahead" switch. */
+  showAhead?: boolean
+}) {
   const status = useClaude((s) => s.status)
   const hint = useClaude((s) => s.hint)
   const [draft, setDraft] = useState('')
@@ -37,19 +46,22 @@ export function ClaudeKey({ onConnected }: { onConnected?: () => void }) {
 
   if (status === 'connected') {
     return (
-      <div className="flex items-center gap-3 rounded-ui border border-line px-3 py-2.5">
-        <KeyRound size={16} aria-hidden className="shrink-0 text-muted" />
-        <p className="min-w-0 flex-1 text-[14px]">
-          <b>Claude connected</b>
-          <span className="block text-[12.5px] text-muted">Key ending in {hint}</span>
-        </p>
-        <button
-          type="button"
-          onClick={() => void disconnectClaude()}
-          className="rounded-ui px-2.5 py-1.5 text-[13px] font-medium text-muted hover:bg-hover hover:text-ink"
-        >
-          Remove
-        </button>
+      <div className="grid gap-2">
+        <div className="flex items-center gap-3 rounded-ui border border-line px-3 py-2.5">
+          <KeyRound size={16} aria-hidden className="shrink-0 text-muted" />
+          <p className="min-w-0 flex-1 text-[14px]">
+            <b>Claude connected</b>
+            <span className="block text-[12.5px] text-muted">Key ending in {hint}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => void disconnectClaude()}
+            className="rounded-ui px-2.5 py-1.5 text-[13px] font-medium text-muted hover:bg-hover hover:text-ink"
+          >
+            Remove
+          </button>
+        </div>
+        {showAhead && <SummarizeAhead />}
       </div>
     )
   }
@@ -105,5 +117,32 @@ export function ClaudeKey({ onConnected }: { onConnected?: () => void }) {
         </p>
       )}
     </form>
+  )
+}
+
+/** "Summarize ahead" switch, off by default: every summary is paid by the user's key. */
+function SummarizeAhead() {
+  const ahead = useSummarizeAhead((s) => s.ahead)
+  const setAhead = useSummarizeAhead((s) => s.setAhead)
+  const paused = useSummaries((s) => s.paused)
+  return (
+    <>
+      <div className="flex items-start gap-3 rounded-ui border border-line px-3 py-2.5">
+        <p className="min-w-0 flex-1 text-[14px]">
+          <b className="block">Summarize ahead</b>
+          <span className="text-[12.5px] text-muted">
+            Summarizes the card on top and the next {AHEAD} as you go, so they're ready when you get
+            there. Each one uses your Claude credit.
+          </span>
+        </p>
+        <Switch checked={ahead} onChange={() => setAhead(!ahead)} label="Summarize ahead" />
+      </div>
+      {paused && (
+        <p role="status" className="flex gap-1.5 text-[13px] text-nope">
+          <ShieldAlert size={14} aria-hidden className="mt-0.5 shrink-0" />
+          Summaries paused: {paused}
+        </p>
+      )}
+    </>
   )
 }

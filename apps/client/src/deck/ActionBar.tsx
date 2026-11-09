@@ -1,8 +1,10 @@
-import { ArrowUpRight, Clock, Heart, Share, Undo2, X } from 'lucide-react'
+import { ArrowUpRight, Clock, Heart, LoaderCircle, Share, Sparkles, Undo2, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 import { useStyle } from '@/theme/ThemeScope'
+import { useSummaries } from '@/claude/summaries'
 import type { DeckActions } from './actions'
+import { useDeck } from './store'
 
 interface ActionBarProps {
   actions: DeckActions
@@ -17,7 +19,10 @@ export function ActionBar(props: ActionBarProps) {
   const Bar = style === 'editorial' ? EditorialBar : style === 'playful' ? PlayfulBar : GlassBar
   return (
     <div className="grid justify-items-center gap-2 sm:gap-3">
-      <OpenLink onClick={props.actions.open} disabled={props.empty} />
+      <div className="flex flex-wrap items-center justify-center gap-1">
+        <OpenLink onClick={props.actions.open} disabled={props.empty} />
+        <SummarizeButton onClick={props.actions.summarize} disabled={props.empty} />
+      </div>
       <Bar {...props} />
     </div>
   )
@@ -36,6 +41,34 @@ function OpenLink({ onClick, disabled }: { onClick: () => void; disabled: boolea
       Open link
       <ArrowUpRight size={15} strokeWidth={2.4} aria-hidden />
       <Kbd className="ml-1">↵</Kbd>
+    </button>
+  )
+}
+
+/** Claude summary of the top card. Hidden once the card is summarized. */
+function SummarizeButton({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
+  const item = useDeck((s) => {
+    if (s.view.kind !== 'topic') return undefined
+    const id = s.queues[s.view.id]?.[0]
+    return id ? s.items[id] : undefined
+  })
+  const pending = useSummaries((s) => (item ? s.pending[item.id] === true : false))
+  if (item?.summarized) return null
+  return (
+    <button
+      type="button"
+      title="Summarize with Claude (A)"
+      onClick={onClick}
+      disabled={disabled || pending}
+      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13.5px] font-semibold text-accent hover:bg-hover disabled:pointer-events-none disabled:opacity-60"
+    >
+      {pending ? (
+        <LoaderCircle size={15} aria-hidden className="motion-safe:animate-spin" />
+      ) : (
+        <Sparkles size={15} aria-hidden />
+      )}
+      {pending ? 'Summarizing…' : 'Summarize'}
+      <Kbd className="ml-1">A</Kbd>
     </button>
   )
 }
