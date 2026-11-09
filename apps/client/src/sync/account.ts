@@ -1,4 +1,4 @@
-import type { Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 
@@ -47,21 +47,29 @@ export async function startSession(): Promise<string | null> {
 }
 
 let listening = false
-let onSessionLost: (() => void) | null = null
+let onSessionLost: ((hadEmail: boolean) => void) | null = null
 
-/** Called when Supabase drops the session (refresh token revoked or expired). */
-export const setSessionLostHandler = (handler: (() => void) | null): void => {
+/**
+ * Called when Supabase drops the session (refresh token revoked or expired). `hadEmail` is true
+ * when the lost session was a signed-in email account, not the anonymous one.
+ */
+export const setSessionLostHandler = (handler: ((hadEmail: boolean) => void) | null): void => {
   onSessionLost = handler
+}
+
+/** Mirrors Supabase auth changes into the account store. Exported for tests. */
+export function handleAuthChange(event: AuthChangeEvent, session: Session | null): void {
+  // Read before the update below clears it.
+  const hadEmail = useAccount.getState().email !== null
+  useAccount.setState(fromSession(session))
+  if (event === 'SIGNED_OUT') onSessionLost?.(hadEmail)
 }
 
 async function openSession(): Promise<string | null> {
   if (!supabase) return null
   if (!listening) {
     listening = true
-    supabase.auth.onAuthStateChange((event, session) => {
-      useAccount.setState(fromSession(session))
-      if (event === 'SIGNED_OUT') onSessionLost?.()
-    })
+    supabase.auth.onAuthStateChange(handleAuthChange)
   }
   try {
     const { data } = await supabase.auth.getSession()

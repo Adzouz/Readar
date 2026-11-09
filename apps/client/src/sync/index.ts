@@ -2,6 +2,7 @@
 // does nothing and the app runs on the device with sample cards.
 
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/shell/toast'
 import { reconnect, setSessionLostHandler, startSession, useAccount } from './account'
 import {
   clearLocalContent,
@@ -85,8 +86,11 @@ export async function startSync(): Promise<void> {
   window.addEventListener('online', () => {
     quietly(useAccount.getState().userId ? flushOutbox().then(loadContent) : resume())
   })
-  setSessionLostHandler(() => {
-    if (!signingOut) quietly(resume())
+  setSessionLostHandler((hadEmail) => {
+    if (signingOut) return
+    // Falling back to a new anonymous session silently would hide that lists stopped syncing.
+    if (hadEmail) useToast.getState().show('Signed out. Sign in again to keep syncing.')
+    quietly(resume())
   })
 
   if (!userId) return
