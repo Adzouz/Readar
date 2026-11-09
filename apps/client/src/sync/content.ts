@@ -245,8 +245,9 @@ async function loadInto(
   deckStore.getState().setContent(unique, lists)
   write(CACHE_KEY, { items: unique, lists } satisfies Cache)
   lastLoad = Date.now()
-  // Same moments as the cards: start-up, topic changes, coming back to the app.
-  await loadSourceHealth()
+  // Same moments as the cards: start-up, topic changes, coming back to the app. Not awaited:
+  // a slow status call must not hold up whatever waits for the cards.
+  void loadSourceHealth()
 }
 
 /** Removes everything this module keeps on the device (used on sign-out). */
