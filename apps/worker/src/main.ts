@@ -41,8 +41,20 @@ async function extract(items: { id: string; url: string }[]): Promise<void> {
   })
 }
 
+/** Tells the app a worker is running, so sources waiting for a fetch show "Syncing…". */
+async function beat(): Promise<void> {
+  try {
+    await sql`
+      insert into public.worker_heartbeat (id, beat_at) values (1, now())
+      on conflict (id) do update set beat_at = excluded.beat_at`
+  } catch (error) {
+    log.warn(`heartbeat: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 /** Fetches every due source, batch after batch. Returns how many items were added. */
 async function pass(): Promise<number> {
+  await beat()
   await syncFollowed()
   let added = 0
   while (!state.stopping) {
@@ -51,7 +63,9 @@ async function pass(): Promise<number> {
     const outcomes = await pool(due, FETCH_CONCURRENCY, fetchSource)
     added += outcomes.reduce((sum, outcome) => sum + outcome.added, 0)
     await extract(outcomes.flatMap((outcome) => outcome.toExtract))
+    await beat()
   }
+  await beat()
   return added
 }
 

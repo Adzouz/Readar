@@ -6,9 +6,11 @@ interface StageHeaderProps {
   subtitle?: string
   /** Cards reviewed and in total, for the progress bar. */
   progress?: { done: number; total: number }
+  /** A small button next to the title, e.g. the topic's sources. */
+  action?: ReactNode
 }
 
-export function StageHeader({ icon, title, subtitle, progress }: StageHeaderProps) {
+export function StageHeader({ icon, title, subtitle, progress, action }: StageHeaderProps) {
   return (
     <header className="mx-auto flex w-full max-w-[640px] flex-wrap items-center gap-3">
       {icon}
@@ -16,6 +18,7 @@ export function StageHeader({ icon, title, subtitle, progress }: StageHeaderProp
         <h1 className="font-display text-[21px] leading-tight font-bold tracking-tight">{title}</h1>
         {subtitle && <p className="text-[13px] text-muted">{subtitle}</p>}
       </div>
+      {action}
       {progress && progress.total > 0 && (
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[12px] text-muted tabular-nums">

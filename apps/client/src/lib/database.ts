@@ -38,6 +38,20 @@ export type ItemCardRow = {
   coverage: number
 }
 
+/** Raw fetch facts for one of the user's sources (`my_source_health`). Catalog and keyword
+ * sources have a slug, links a URL. Null facts: the worker hasn't picked the link up yet. */
+export type SourceHealthRow = {
+  topic_id: string
+  slug: string | null
+  url: string | null
+  fetched_at: string | null
+  last_status: number | null
+  last_error: string | null
+  error_count: number
+  items: number
+  latest_item_at: string | null
+}
+
 export type ListItemRow = ItemCardRow & {
   topic_id: string
   state: Exclude<ItemState, 'read'>
@@ -82,6 +96,8 @@ export type Database = {
       save_setup: { Args: { payload: Json }; Returns: undefined }
       deck: { Args: { p_topic_id: string; p_limit?: number }; Returns: ItemCardRow[] }
       list_items: { Args: { [_ in never]: never }; Returns: ListItemRow[] }
+      my_source_health: { Args: { [_ in never]: never }; Returns: SourceHealthRow[] }
+      worker_active: { Args: { [_ in never]: never }; Returns: boolean }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

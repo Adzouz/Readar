@@ -1,9 +1,28 @@
-import { Link2, Mic, Play, Plus, Rss, Search, X, type LucideIcon } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import {
+  Link2,
+  LoaderCircle,
+  Mic,
+  Play,
+  Plus,
+  Rss,
+  Search,
+  TriangleAlert,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { CatalogSource, SourceKind } from '@readar/core'
 import { TopicIcon } from '@/deck/TopicIcon'
 import type { Topic } from '@/deck/types'
 import { cn } from '@/lib/cn'
+import { supabase } from '@/lib/supabase'
+import {
+  healthKey,
+  healthOf,
+  loadSourceHealth,
+  SYNCING,
+  useSourceHealth,
+} from '@/sync/sourceHealth'
 import { Frame, PrimaryButton, QuietButton } from './Frame'
 import { followedTopics, suggestedSources, useSetup, type UserSource } from './store'
 
@@ -15,6 +34,8 @@ const KIND: Record<SourceKind, { label: string; Icon: LucideIcon }> = {
   link: { label: 'Your link', Icon: Link2 },
 }
 
+const HEALTH_REFRESH_MS = 30_000
+
 /** Onboarding step 3: suggested sources per followed topic, switchable, plus the user's links. */
 export function SourcePicker() {
   const topicIds = useSetup((s) => s.topicIds)
@@ -24,7 +45,23 @@ export function SourcePicker() {
   const completed = useSetup((s) => s.completed)
   const goTo = useSetup((s) => s.goTo)
   const finish = useSetup((s) => s.finish)
+  const sourcesFrom = useSetup((s) => s.sourcesFrom)
   const topics = followedTopics({ topicIds, keywords })
+
+  // Fresh fetch results when the screen opens, then now and again: the worker fetches a new link
+  // within minutes, and the first call can fail while the session is still starting.
+  // Opened from a topic: show that topic's sources first.
+  useEffect(() => {
+    if (sourcesFrom) {
+      document.getElementById(`sources-${sourcesFrom}`)?.scrollIntoView({ block: 'start' })
+    }
+  }, [sourcesFrom])
+
+  useEffect(() => {
+    void loadSourceHealth()
+    const timer = setInterval(() => void loadSourceHealth(), HEALTH_REFRESH_MS)
+    return () => clearInterval(timer)
+  }, [])
 
   const sourcesOn = topics.reduce((sum, topic) => {
     const suggested = suggestedSources(topic.id, keywords)
@@ -39,7 +76,7 @@ export function SourcePicker() {
       subtitle="We picked a few for each topic. Switch off what you don't want, or add your own links."
       footer={
         <>
-          <QuietButton onClick={() => goTo('topics')}>Back</QuietButton>
+          <QuietButton onClick={() => goTo(sourcesFrom ? 'done' : 'topics')}>Back</QuietButton>
           <span className="ml-auto text-[13px] text-muted tabular-nums">
             {sourcesOn} {sourcesOn === 1 ? 'source' : 'sources'} on
           </span>
@@ -74,7 +111,10 @@ function TopicSources({ topic, sources, disabled, userSources }: TopicSourcesPro
   const removeUserSource = useSetup((s) => s.removeUserSource)
   const on = sources.filter((source) => !disabled.includes(source.id)).length + userSources.length
   return (
-    <section className="rounded-card border border-line bg-surface p-4">
+    <section
+      id={`sources-${topic.id}`}
+      className="scroll-mt-4 rounded-card border border-line bg-surface p-4"
+    >
       <header className="flex items-center gap-3">
         <TopicIcon topic={topic} />
         <div className="min-w-0">
@@ -88,6 +128,7 @@ function TopicSources({ topic, sources, disabled, userSources }: TopicSourcesPro
         {sources.map((source) => (
           <SourceRow
             key={source.id}
+            topicId={topic.id}
             source={source}
             on={!disabled.includes(source.id)}
             onToggle={() => toggleSource(source.id)}
@@ -106,11 +147,35 @@ function TopicSources({ topic, sources, disabled, userSources }: TopicSourcesPro
   )
 }
 
+/** Fetch status for a source row: what it brought, or why it brings nothing. */
+function Health({ topicId, id }: { topicId: string; id: string }) {
+  const row = useSourceHealth((s) => s.rows[healthKey(topicId, id)])
+  const workerActive = useSourceHealth((s) => s.workerActive)
+  const loaded = useSourceHealth((s) => s.loaded)
+  // Sample-card mode never fetches anything; before the first answer we don't know yet.
+  if (!supabase || !loaded) return null
+  const health = healthOf(row, workerActive)
+  const troubled = health.state === 'failing' || health.state === 'empty'
+  return (
+    <p
+      className={cn('flex items-center gap-1 text-[12.5px]', troubled ? 'text-nope' : 'text-muted')}
+    >
+      {troubled && <TriangleAlert size={12} aria-hidden className="shrink-0" />}
+      {health === SYNCING && (
+        <LoaderCircle size={12} aria-hidden className="shrink-0 motion-safe:animate-spin" />
+      )}
+      {health.label}
+    </p>
+  )
+}
+
 function SourceRow({
+  topicId,
   source,
   on,
   onToggle,
 }: {
+  topicId: string
   source: CatalogSource
   on: boolean
   onToggle: () => void
@@ -132,6 +197,7 @@ function SourceRow({
         <p className="text-[12.5px] text-muted">
           {label} · {source.site}
         </p>
+        {on && <Health topicId={topicId} id={source.id} />}
       </div>
       <Switch checked={on} onChange={onToggle} label={source.name} />
     </li>
@@ -150,9 +216,8 @@ function UserSourceRow({ source, onRemove }: { source: UserSource; onRemove: () 
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[14px] leading-snug font-medium break-all">{host}</p>
-        <p className="text-[12.5px] text-muted">
-          Your link · Readar finds its feed when it fetches
-        </p>
+        <p className="text-[12.5px] text-muted">Your link</p>
+        <Health topicId={source.topicId} id={source.url} />
       </div>
       <button
         type="button"

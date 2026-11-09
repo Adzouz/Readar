@@ -163,7 +163,7 @@ Tooling, same as PRism: pnpm workspaces, TypeScript, React 19, Vite, Tailwind 4,
 
 Row Level Security on every user-owned table (`user_id = auth.uid()`).
 
-As built (6 Nov): no `categories` table yet (the catalog has no category level) and no `user_topic_taste` (needs embeddings). Extra tables: `item_sources` (the same article from several sources) and `item_aliases` (Google News wrapper links). Clients never read shared tables directly. They call the security-definer functions `deck` and `list_items`, so the links a user adds stay private. pgmq is not used: the worker claims due sources with `for update skip locked`, which is enough for one worker.
+As built (6 Nov): no `categories` table yet (the catalog has no category level) and no `user_topic_taste` (needs embeddings). Extra tables: `item_sources` (the same article from several sources) and `item_aliases` (Google News wrapper links). Clients never read shared tables directly. They call the security-definer functions `deck`, `list_items` and `my_source_health` (fetch status of the user's own sources, shown on the sources screen and as a notice in the topic view), so the links a user adds stay private. The worker writes a one-row `worker_heartbeat`; `worker_active` tells the app whether a worker beat in the last 3 minutes, so a source not fetched yet shows "Syncing…" only while one runs, and "Not fetched yet" otherwise. pgmq is not used: the worker claims due sources with `for update skip locked`, which is enough for one worker.
 
 ## 9. Platforms and distribution (MVP)
 

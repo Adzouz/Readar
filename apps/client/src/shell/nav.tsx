@@ -257,7 +257,7 @@ export function Bubbles({ onSettings }: NavProps) {
   return (
     <nav
       aria-label="Topics and library"
-      className="flex items-start gap-3.5 overflow-x-auto px-5 pt-[max(2.25rem,env(safe-area-inset-top))] pb-2 md:justify-center"
+      className="flex items-start gap-2.5 overflow-x-auto px-5 pt-[max(2.25rem,env(safe-area-inset-top))] pb-2 md:justify-center"
     >
       {topics.map((topic) => {
         const count = queues[topic.id]?.length ?? 0
@@ -312,18 +312,22 @@ function Bubble({ active, onClick, label, ring, badge, children }: BubbleProps) 
       type="button"
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className="flex w-16 shrink-0 flex-col items-center gap-1.5"
+      className="flex w-[70px] shrink-0 flex-col items-center gap-1.5"
     >
+      {/* Ring as a whole-pixel border around a gap: box-shadow spreads with half pixels render
+          thicker on some sides, worse once the active bubble is scaled. */}
       <span
         className={cn(
-          'relative grid size-14 place-items-center rounded-full bg-surface transition-transform',
+          'relative grid size-[66px] place-items-center rounded-full border-[3px] p-[2px] transition-transform',
           active && 'scale-110',
         )}
-        style={{ boxShadow: `0 0 0 2.5px var(--r-bg), 0 0 0 5px ${ring}` }}
+        style={{ borderColor: ring }}
       >
-        {children}
+        <span className="grid size-full place-items-center rounded-full bg-surface">
+          {children}
+        </span>
         {badge ? (
-          <span className="absolute -top-1 -right-1 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-white tabular-nums">
+          <span className="absolute top-0 right-0 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-white tabular-nums">
             {badge}
           </span>
         ) : null}

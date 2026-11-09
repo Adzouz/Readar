@@ -1,3 +1,4 @@
+import { Rss, TriangleAlert } from 'lucide-react'
 import { useCallback, useRef, useState, type RefObject } from 'react'
 import { ActionBar } from '@/deck/ActionBar'
 import { useDeckActions, type DeckActions } from '@/deck/actions'
@@ -11,7 +12,8 @@ import { TopicIcon } from '@/deck/TopicIcon'
 import type { Action } from '@/deck/types'
 import { useDeckKeys } from '@/deck/useDeckKeys'
 import { isTauri } from '@/lib/platform'
-import { activeSourceCount, useSetup } from '@/onboarding/store'
+import { activeSourceCount, activeSourceIds, openSources, useSetup } from '@/onboarding/store'
+import { troubledCount, useSourceHealth } from '@/sync/sourceHealth'
 import { useStyle } from '@/theme/ThemeScope'
 import { Bubbles, EditionHeader, GlassSidebar, TopicStrip } from './nav'
 import { Settings } from './Settings'
@@ -83,6 +85,15 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
   const total = useDeck((s) => s.totals[topicId] ?? 0)
   const canUndo = useDeck((s) => s.history.length > 0)
   const sourceCount = useSetup((s) => activeSourceCount(s, topicId))
+  const keywords = useSetup((s) => s.keywords)
+  const disabledSourceIds = useSetup((s) => s.disabledSourceIds)
+  const userSources = useSetup((s) => s.userSources)
+  const health = useSourceHealth((s) => s.rows)
+  const troubled = troubledCount(
+    health,
+    topicId,
+    activeSourceIds({ keywords, disabledSourceIds, userSources }, topicId),
+  )
   const show = useToast((s) => s.show)
 
   const onDecide = useCallback(
@@ -112,7 +123,28 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
               : `${sourceCount} ${sourceCount === 1 ? 'source' : 'sources'} · nothing fetched yet`
         }
         progress={{ done: total - remaining, total }}
+        action={
+          <button
+            type="button"
+            onClick={() => openSources(topicId)}
+            title="See and edit this topic's sources"
+            className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-[12.5px] text-muted hover:bg-hover hover:text-ink"
+          >
+            <Rss size={13} aria-hidden />
+            {sourceCount} {sourceCount === 1 ? 'source' : 'sources'}
+          </button>
+        }
       />
+      {troubled > 0 && (
+        <button
+          type="button"
+          onClick={() => openSources(topicId)}
+          className="mx-auto flex w-full max-w-[640px] items-center gap-1.5 text-left text-[13px] text-nope hover:underline"
+        >
+          <TriangleAlert size={14} aria-hidden className="shrink-0" />
+          {troubled} {troubled === 1 ? "source isn't" : "sources aren't"} bringing articles · Review
+        </button>
+      )}
       <div className="flex min-h-[380px] flex-1 items-center justify-center">
         {remaining ? (
           <Deck ref={deckRef} topic={topic} itemIds={queue} onDecide={onDecide} />
@@ -124,7 +156,7 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
               action={
                 <button
                   type="button"
-                  onClick={() => useSetup.getState().goTo('sources')}
+                  onClick={() => openSources(topicId)}
                   className="mt-1 rounded-ui bg-accent-soft px-3 py-1.5 text-[13px] font-semibold text-accent-ink"
                 >
                   Review sources
