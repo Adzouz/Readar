@@ -1,4 +1,4 @@
-import { Rss, TriangleAlert } from 'lucide-react'
+import { Clock, LoaderCircle, Rss, TriangleAlert } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { AHEAD, summarizeAhead, useSummarizeAhead } from '@/claude/summaries'
 import { ActionBar } from '@/deck/ActionBar'
@@ -15,6 +15,7 @@ import { useDeckKeys } from '@/deck/useDeckKeys'
 import { isTauri } from '@/lib/platform'
 import { stopSpeaking, useSpeech } from '@/lib/speech'
 import { activeSourceCount, activeSourceIds, openSources, useSetup } from '@/onboarding/store'
+import { useFetchNow } from '@/sync/fetchNow'
 import { troubledCount, useSourceHealth } from '@/sync/sourceHealth'
 import { useStyle } from '@/theme/ThemeScope'
 import { Bubbles, EditionHeader, GlassSidebar, TopicStrip } from './nav'
@@ -152,6 +153,7 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
           </button>
         }
       />
+      <FetchNotice />
       {troubled > 0 && (
         <button
           type="button"
@@ -203,5 +205,26 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
       </div>
       <ActionBar actions={actions} empty={!remaining} canUndo={canUndo} />
     </>
+  )
+}
+
+/** Shown while the worker fetches sources the user just added. */
+function FetchNotice() {
+  const status = useFetchNow((s) => s.status)
+  if (status === 'idle') return null
+  return (
+    <p
+      role="status"
+      className="mx-auto flex w-full max-w-[640px] items-center gap-1.5 text-[13px] text-muted"
+    >
+      {status === 'fetching' ? (
+        <LoaderCircle size={14} aria-hidden className="shrink-0 motion-safe:animate-spin" />
+      ) : (
+        <Clock size={14} aria-hidden className="shrink-0" />
+      )}
+      {status === 'fetching'
+        ? 'Fetching new articles…'
+        : "Your new sources will be fetched within the hour. Cards appear here when they're in."}
+    </p>
   )
 }

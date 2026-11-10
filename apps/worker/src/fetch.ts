@@ -1,10 +1,10 @@
 // Fetches due sources and writes their new entries to `items`.
 
 import { createHash } from 'node:crypto'
-import { canonicalUrl } from '@readar/core'
+import { canonicalUrl, MAX_ENTRY_AGE_DAYS } from '@readar/core'
 import { sql, type SourceRow } from './db.ts'
 import { decodeGoogleNewsLink, isGoogleNewsLink } from './gnews.ts'
-import { FEED_ACCEPT, get, HTML_ACCEPT } from './http.ts'
+import { FEED_ACCEPT, get, HTML_ACCEPT, httpError } from './http.ts'
 import { log } from './log.ts'
 import { looksLikeFeed, parseEntries, type Entry } from './parse.ts'
 import { readingMinutes } from './text.ts'
@@ -13,8 +13,6 @@ import { channelIdOf, uploadsFromApi } from './youtube.ts'
 const MIN_INTERVAL_S = 15 * 60
 const MAX_INTERVAL_S = 6 * 60 * 60
 const MAX_BACKOFF_S = 24 * 60 * 60
-/** Entries older than this are skipped, so a new source doesn't flood the deck with its archive. */
-const MAX_AGE_DAYS = 45
 const MAX_ENTRIES = 30
 
 export const hashUrl = (url: string): string =>
@@ -57,7 +55,7 @@ async function discoverFeed(
   source: SourceRow,
 ): Promise<{ feed: string; title: string | null } | null> {
   const page = await get(source.url, { accept: `${FEED_ACCEPT}, ${HTML_ACCEPT}` })
-  if (page.status !== 200) throw new Error(`HTTP ${page.status}`)
+  if (page.status !== 200) throw httpError(page)
   if (looksLikeFeed(page.body)) {
     return { feed: page.url, title: parseEntries(page.body, 'feed', page.url).title }
   }
@@ -90,8 +88,10 @@ async function readFeed(
     const channel = source.kind === 'youtube' ? channelIdOf(feedUrl) : null
     const fallback = channel ? await uploadsFromApi(channel) : null
     if (fallback) return { entries: fallback, etag: null, lastModified: null, status: 200 }
-    throw new Error(`HTTP ${response.status}`)
+    throw httpError(response)
   }
+  // A feed address that now serves a web page (moved, or a login wall).
+  if (!looksLikeFeed(response.body)) throw new Error('Not a feed')
   return {
     entries: parseEntries(response.body, source.kind, response.url).entries,
     etag: response.headers.get('etag'),
@@ -183,7 +183,13 @@ async function store(source: SourceRow, entry: Entry): Promise<{ id: string; url
 async function succeed(
   source: SourceRow,
   added: number,
-  extra: { etag?: string | null; lastModified?: string | null; status: number },
+  extra: {
+    etag?: string | null
+    lastModified?: string | null
+    status: number
+    /** What the feed held, all ages: says why a working feed brings nothing. */
+    entries?: Entry[]
+  },
 ): Promise<void> {
   const current = source.fetch_interval_seconds || 30 * 60
   const next =
@@ -198,9 +204,16 @@ async function succeed(
       last_status = ${extra.status},
       last_error = null,
       error_count = 0,
+      feed_entries = coalesce(${extra.entries?.length ?? null}, feed_entries),
+      newest_entry_at = coalesce(${newestOf(extra.entries)}, newest_entry_at),
       fetch_interval = make_interval(secs => ${next}),
       next_fetch_at = now() + make_interval(secs => ${next})
     where id = ${source.id}`
+}
+
+function newestOf(entries: Entry[] | undefined): Date | null {
+  const dates = (entries ?? []).flatMap((entry) => (entry.publishedAt ? [entry.publishedAt] : []))
+  return dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))) : null
 }
 
 async function fail(source: SourceRow, error: unknown, retryAfterS?: number): Promise<void> {
@@ -244,7 +257,7 @@ export async function fetchSource(source: SourceRow): Promise<FetchOutcome> {
       return outcome
     }
 
-    const cutoff = Date.now() - MAX_AGE_DAYS * 86_400_000
+    const cutoff = Date.now() - MAX_ENTRY_AGE_DAYS * 86_400_000
     const entries = result.entries
       .filter((entry) => !entry.publishedAt || entry.publishedAt.getTime() >= cutoff)
       .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0))
@@ -258,7 +271,7 @@ export async function fetchSource(source: SourceRow): Promise<FetchOutcome> {
         outcome.toExtract.push(item)
       }
     }
-    await succeed(source, outcome.added, result)
+    await succeed(source, outcome.added, { ...result, entries: result.entries })
     if (outcome.added) log.info(`${source.slug ?? source.url}: +${outcome.added}`)
   } catch (error) {
     await fail(source, error)

@@ -46,6 +46,9 @@ export function localPayload(): SetupPayload {
 
 let applying = false
 
+/** True while a server copy of the setup is being applied (not a local edit). */
+export const isApplyingSaved = (): boolean => applying
+
 /** Replaces the local setup with the one saved in Supabase. */
 export function applySaved(saved: SavedSetup): void {
   const profile = saved.profile

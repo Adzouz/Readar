@@ -14,6 +14,7 @@ import {
   sinceLastLoad,
 } from './content'
 import { captureAuthLink, listenForAppLinks } from './authLink'
+import { watchForNewSources } from './fetchNow'
 import { forgetSummaries } from './summaries'
 import { applySaved, fetchSaved, pushSetup, pushSetupSoon, syncSetup, watchSetup } from './setup'
 
@@ -72,6 +73,9 @@ export async function startSync(): Promise<void> {
     // The server picks cards from the saved topics, so reload once they're saved.
     if (topicsChanged) quietly(saved.then(loadContent))
   })
+
+  // New sources: fetch them now rather than at the worker's next round.
+  watchForNewSources()
 
   useAccount.subscribe((state, previous) => {
     if (state.userId && previous.userId && state.userId !== previous.userId) {

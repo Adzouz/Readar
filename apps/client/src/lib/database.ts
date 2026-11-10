@@ -50,6 +50,10 @@ export type SourceHealthRow = {
   error_count: number
   items: number
   latest_item_at: string | null
+  /** Entries in the feed at the last fetch, all ages. */
+  feed_entries: number | null
+  /** Date of the feed's newest entry, even one too old to keep. */
+  newest_entry_at: string | null
 }
 
 export type ListItemRow = ItemCardRow & {
@@ -85,6 +89,13 @@ export type SummaryRow = {
   content_type: ItemCardRow['content_type'] | null
   reading_minutes: number | null
   created_at: string
+}
+
+/** The user's last "fetch now" request (`fetch_status`). Nulls until they make one. */
+export type FetchStatusRow = {
+  requested_at: string | null
+  done_at: string | null
+  worker_active: boolean
 }
 
 export type SummaryInputRow = {
@@ -124,6 +135,8 @@ export type Database = {
       list_items: { Args: { [_ in never]: never }; Returns: ListItemRow[] }
       my_source_health: { Args: { [_ in never]: never }; Returns: SourceHealthRow[] }
       worker_active: { Args: { [_ in never]: never }; Returns: boolean }
+      request_fetch: { Args: { [_ in never]: never }; Returns: string }
+      fetch_status: { Args: { [_ in never]: never }; Returns: FetchStatusRow[] }
       summary_input: { Args: { p_item_id: string }; Returns: SummaryInputRow[] }
     }
     Enums: { [_ in never]: never }

@@ -1,5 +1,6 @@
 // Whether each source the user reads actually brings articles, so the sources screen and the deck
 // can flag the ones that don't (PLAN.md §11). The worker records the facts; this decides the state.
+import { MAX_ENTRY_AGE_DAYS } from '@readar/core'
 import { create } from 'zustand'
 import type { SourceHealthRow } from '@/lib/database'
 import { supabase } from '@/lib/supabase'
@@ -14,17 +15,35 @@ export interface SourceHealth {
 }
 
 export const SYNCING: SourceHealth = { state: 'waiting', label: 'Syncing…' }
-export const NOT_FETCHED: SourceHealth = { state: 'waiting', label: 'Not fetched yet' }
+/** Readar fetches every hour (GitHub Actions); a running worker fetches sooner. */
+export const NOT_FETCHED: SourceHealth = { state: 'waiting', label: 'Fetched within the hour' }
 
 /** Turns a worker error into words people can act on. */
 function problemOf(row: SourceHealthRow): string {
   const status = row.last_status ?? 0
-  if (/no feed found/i.test(row.last_error ?? '')) return 'no feed found on this page'
-  if (status === 404 || status === 410) return 'page not found'
-  if (status === 401 || status === 403) return 'the site blocks Readar'
-  if (status === 429) return 'the site is limiting requests'
-  if (status >= 500) return 'the site is having trouble'
-  return "couldn't reach it"
+  const error = row.last_error ?? ''
+  if (/no feed found|not a feed/i.test(error)) return "Doesn't seem to be an article feed"
+  if (/firewall/i.test(error)) return "Blocked by the site's firewall"
+  if (/private address|not a web address/i.test(error)) return 'Not a public website'
+  if (status === 404 || status === 410) return 'Page not found'
+  if (status === 401 || status === 403) return 'The site blocks Readar'
+  if (status === 429) return 'The site is limiting requests'
+  if (status >= 500) return 'The site is having trouble'
+  if (/timeout|aborted/i.test(error)) return 'The site takes too long to answer'
+  return "Couldn't reach the site"
+}
+
+const monthYear = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+
+/** Why a feed that works brings nothing. */
+function emptyLabel(row: SourceHealthRow, now: number): string {
+  if (row.feed_entries === 0) return 'The feed has no articles'
+  const newest = row.newest_entry_at
+  if (newest && now - Date.parse(newest) > MAX_ENTRY_AGE_DAYS * 86_400_000) {
+    return `Articles too old · latest ${monthYear(newest)}`
+  }
+  return 'No recent articles found'
 }
 
 /**
@@ -38,13 +57,12 @@ export function healthOf(
   now = Date.now(),
 ): SourceHealth {
   if (!row || !row.fetched_at) {
-    if (row && row.error_count > 0)
-      return { state: 'failing', label: `Can't fetch: ${problemOf(row)}` }
+    if (row && row.error_count > 0) return { state: 'failing', label: problemOf(row) }
     return workerActive ? SYNCING : NOT_FETCHED
   }
   const failing = row.error_count >= 2 || (row.error_count >= 1 && row.items === 0)
-  if (failing) return { state: 'failing', label: `Can't fetch: ${problemOf(row)}` }
-  if (row.items === 0) return { state: 'empty', label: 'No recent articles found' }
+  if (failing) return { state: 'failing', label: problemOf(row) }
+  if (row.items === 0) return { state: 'empty', label: emptyLabel(row, now) }
   const age = ageOf(row.latest_item_at, now)
   const latest = !age
     ? ''
