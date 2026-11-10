@@ -41,7 +41,7 @@ export interface DeckState {
   lists: Record<ListId, string[]>
   history: { action: Action; itemId: string }[]
   view: View
-  /** Whether the top card shows its full summary. */
+  /** Whether the top card shows Claude's summary (only once it has one). */
   expanded: boolean
   /** Moves the top card of the current topic to a list. Returns the item, if any. */
   decide: (action: Action) => Item | undefined
@@ -58,7 +58,7 @@ export interface DeckState {
    * undo history still points to are kept so ⌘Z keeps working.
    */
   setContent: (items: Item[], lists: Record<ListId, string[]>) => void
-  /** Swaps a card's excerpt for Claude's summary, wherever the card is. */
+  /** Adds Claude's summary to a card, wherever the card is. */
   applySummary: (itemId: string, summary: CardSummary) => void
 }
 
@@ -165,7 +165,13 @@ export function createDeckStore(data: DeckData) {
     },
 
     select: (view) => set({ view, expanded: false }),
-    toggleExpanded: () => set((state) => ({ expanded: !state.expanded })),
+    toggleExpanded: () => {
+      const { expanded, view, queues, items } = get()
+      const top = view.kind === 'topic' ? items[queues[view.id]?.[0] ?? ''] : undefined
+      // Nothing to open before Claude has written a summary.
+      if (!expanded && !top?.summary) return
+      set({ expanded: !expanded })
+    },
 
     load: (topics) => {
       const { items, lists, view, topics: previous } = get()

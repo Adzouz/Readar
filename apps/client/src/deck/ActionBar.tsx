@@ -1,8 +1,20 @@
-import { ArrowUpRight, Clock, Heart, LoaderCircle, Share, Sparkles, Undo2, X } from 'lucide-react'
+import {
+  ArrowUpRight,
+  Clock,
+  Heart,
+  LoaderCircle,
+  Share,
+  Sparkles,
+  Square,
+  Undo2,
+  Volume2,
+  X,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 import { useStyle } from '@/theme/ThemeScope'
 import { useSummaries } from '@/claude/summaries'
+import { useSpeech } from '@/lib/speech'
 import type { DeckActions } from './actions'
 import { useDeck } from './store'
 
@@ -21,7 +33,7 @@ export function ActionBar(props: ActionBarProps) {
     <div className="grid justify-items-center gap-2 sm:gap-3">
       <div className="flex flex-wrap items-center justify-center gap-1">
         <OpenLink onClick={props.actions.open} disabled={props.empty} />
-        <SummarizeButton onClick={props.actions.summarize} disabled={props.empty} />
+        <SummaryActions actions={props.actions} disabled={props.empty} />
       </div>
       <Bar {...props} />
     </div>
@@ -45,31 +57,83 @@ function OpenLink({ onClick, disabled }: { onClick: () => void; disabled: boolea
   )
 }
 
-/** Claude summary of the top card. Hidden once the card is summarized. */
-function SummarizeButton({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
-  const item = useDeck((s) => {
+/** The top card of the topic on screen, if any. */
+function useTopItem() {
+  return useDeck((s) => {
     if (s.view.kind !== 'topic') return undefined
     const id = s.queues[s.view.id]?.[0]
     return id ? s.items[id] : undefined
   })
+}
+
+const LINK_BUTTON =
+  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13.5px] font-semibold text-accent hover:bg-hover disabled:pointer-events-none'
+
+/**
+ * Claude actions for the top card: "Summarize" until it has a summary, then "Read AI summary"
+ * and "Listen to AI summary". The card itself always keeps the source's own text.
+ */
+function SummaryActions({ actions, disabled }: { actions: DeckActions; disabled: boolean }) {
+  const item = useTopItem()
   const pending = useSummaries((s) => (item ? s.pending[item.id] === true : false))
-  if (item?.summarized) return null
+  const expanded = useDeck((s) => s.expanded)
+  const speaking = useSpeech((s) => s.speakingId !== null && s.speakingId === item?.id)
+
+  if (!item?.summary) {
+    return (
+      <button
+        type="button"
+        title="Summarize with Claude (A)"
+        onClick={actions.summarize}
+        disabled={disabled || pending}
+        className={cn(LINK_BUTTON, 'disabled:opacity-60')}
+      >
+        {pending ? (
+          <LoaderCircle size={15} aria-hidden className="motion-safe:animate-spin" />
+        ) : (
+          <Sparkles size={15} aria-hidden />
+        )}
+        {pending ? 'Summarizing…' : 'Summarize'}
+        <Kbd className="ml-1">A</Kbd>
+      </button>
+    )
+  }
+
   return (
-    <button
-      type="button"
-      title="Summarize with Claude (A)"
-      onClick={onClick}
-      disabled={disabled || pending}
-      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13.5px] font-semibold text-accent hover:bg-hover disabled:pointer-events-none disabled:opacity-60"
-    >
-      {pending ? (
-        <LoaderCircle size={15} aria-hidden className="motion-safe:animate-spin" />
-      ) : (
+    <>
+      <button
+        type="button"
+        title={expanded ? 'Hide the AI summary (Space)' : 'Read the AI summary (Space)'}
+        aria-pressed={expanded}
+        onClick={actions.toggleSummary}
+        disabled={disabled}
+        className={cn(LINK_BUTTON, 'disabled:opacity-35')}
+      >
         <Sparkles size={15} aria-hidden />
-      )}
-      {pending ? 'Summarizing…' : 'Summarize'}
-      <Kbd className="ml-1">A</Kbd>
-    </button>
+        {expanded ? 'Hide' : 'Read'} AI summary
+        <Kbd className="ml-1">Space</Kbd>
+      </button>
+      <button
+        type="button"
+        title={speaking ? 'Stop reading (R)' : 'Listen to the AI summary (R)'}
+        aria-pressed={speaking}
+        onClick={actions.listen}
+        disabled={disabled}
+        className={cn(LINK_BUTTON, 'disabled:opacity-35')}
+      >
+        {speaking ? (
+          <Square size={13} fill="currentColor" aria-hidden />
+        ) : (
+          <Volume2 size={15} aria-hidden />
+        )}
+        {/* One flex item, so the gap doesn't split the words. Shorter on phones. */}
+        <span>
+          {speaking ? 'Stop' : 'Listen'}
+          <span className="hidden sm:inline">{speaking ? ' reading' : ' to AI summary'}</span>
+        </span>
+        <Kbd className="ml-1">R</Kbd>
+      </button>
+    </>
   )
 }
 

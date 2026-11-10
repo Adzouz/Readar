@@ -9,7 +9,7 @@
 Readar watches the topics you care about (blogs, news sites, YouTube, podcasts, any web page) and turns everything new into short AI summaries you triage like a deck of cards.
 
 - Each topic is its own lane, so following many topics never turns into one noisy feed.
-- Cards: ← dismiss (goes to Dismissed, restorable), → like (Liked), ↑ read later (Read later). A summarizes with Claude (on demand), Space shows the full summary, ↵ opens the original, S shares, ⌘Z undoes.
+- Cards: ← dismiss (goes to Dismissed, restorable), → like (Liked), ↑ read later (Read later). A summarizes with Claude (on demand), Space shows or hides the AI summary, R reads it aloud, ↵ opens the original, S shares, ⌘Z undoes.
 - Every topic comes with suggested sources. People add their own (URL, YouTube channel, keyword, OPML) and switch any source on or off.
 - Lists, topics, sources and settings sync across Mac, iPhone and web.
 
@@ -67,8 +67,8 @@ After the MVP, the public launch adds: Free / Pro / Pro + own key plans, Readar 
 
 ### Deck
 
-- Card: content type, source, age, length, relevance (1–3 bars), title, AI TL;DR, three key points (Space), "why for you", "also covered by N sources".
-- Keyboard (Mac, web): ← → ↑ (or h, l, k), A, Space, ↵/O, S, ⌘Z/U, 1–9 to switch topic, ⌘, for settings; ⌘K command bar and ? shortcut sheet later.
+- Card: content type, source, age, length, relevance (1–3 bars), title, the source's own excerpt (always shown), the AI summary on request (TL;DR and three key points in a panel labeled "Summary by Claude", Space), "why for you", "also covered by N sources".
+- Keyboard (Mac, web): ← → ↑ (or h, l, k), A, Space, R, ↵/O, S, ⌘Z/U, 1–9 to switch topic, ⌘, for settings; ⌘K command bar and ? shortcut sheet later.
 - iPhone: swipe left, right or up, tap to expand, haptics, share sheet, Safari view.
 - Buttons under the card for people who don't swipe. Undo is unlimited.
 - Each topic ends with an "All caught up" state.
@@ -193,7 +193,7 @@ In order, for the next sessions:
 3. **Sync follow-ups (before summaries).** From the PR #1 re-review, both small, one PR (branch `fix/sync-follow-ups`):
    - Swipe race in `apps/client/src/sync/content.ts` (`applyPending` call in `loadContent`): only swipes still waiting to be sent are applied over the server lists, so a swipe whose send finishes while a reload is in flight can reappear until the next reload. Keep a log of the decisions made since the load started (sent or not) and apply that; extend the `applyPending` test.
    - Silent fallback in `apps/client/src/sync/account.ts` (`SIGNED_OUT` handler): when Supabase drops a signed-in email session, the app moves to a new anonymous session without saying so. Remember that the session had an email and show a toast ("Signed out. Sign in again to keep syncing."), with a test.
-4. **Claude key and on-device summaries (in progress).** Done: strict CSP (Tauri), the key in the keychain on Mac and iPhone (`src-tauri/src/secrets.rs`) or browser storage with a warning on web, the call path (SDK in the webview, §6), a skippable "Connect Claude" step plus a Settings entry that check the key with the free models list call, and summaries on demand (`apps/client/src/claude`): a Summarize button next to "Open link" and on list rows, the `A` key, "Summarize ahead" (top card + next 5, off by default), private rows in `summaries` loaded with the cards, and key or credit errors that pause summaries. Left: run it with a funded key, then the summary spike on ~50 real articles (quality, tokens, cost).
+4. **Claude key and on-device summaries (in progress).** Done: strict CSP (Tauri), the key in the keychain on Mac and iPhone (`src-tauri/src/secrets.rs`) or browser storage with a warning on web, the call path (SDK in the webview, §6), a skippable "Connect Claude" step plus a Settings entry that check the key with the free models list call, and summaries on demand (`apps/client/src/claude`): a Summarize button next to "Open link" and on list rows, the `A` key, "Summarize ahead" (top card + next 5, off by default), private rows in `summaries` loaded with the cards, key or credit errors that pause summaries, and, once a card has a summary, "Read AI summary" (Space) and "Listen to AI summary" (`R`; the system voices read the title, Claude's summary and key points, Web Speech API, on the device, free). The card always keeps the source's excerpt; Claude's words only appear in their own labeled panel, and sample cards carry no made-up summary. Left: run it with a funded key, then the summary spike on ~50 real articles (quality, tokens, cost).
 5. **iPhone.** Install Xcode's iOS platform (`xcodebuild -downloadPlatform iOS`), run `pnpm app:ios`, then check gestures, safe areas, haptics, the share sheet, an in-app Safari view and the keychain.
 6. **Source health (done 9 Nov).** The sources screen shows what each source brought, or why it brings nothing (no feed found, blocked, rate limited, site down); the topic view warns when sources aren't bringing articles, and each topic header opens its sources. Sources not fetched yet say "Syncing…" only while a worker runs (`worker_heartbeat`, cleared when it exits).
 7. **CI.** GitHub Actions for lint, typecheck, test and build, plus a weekly `pnpm check:feeds`.
@@ -201,7 +201,7 @@ In order, for the next sessions:
 ### Known limitations
 
 - Without Supabase settings, the app falls back to the fictional sample cards (AI, Design, Space, "Strapi").
-- Cards show the source's excerpt until Claude summaries land: no key points yet, signal fixed at 2, no article images.
+- Cards without a Claude summary show only the source's excerpt (no key points), signal fixed at 2, no article images.
 - Decks are newest first. Ranking waits for embeddings.
 - No Realtime yet: other devices' changes appear on focus (after 2 min) or on restart.
 - Email sign-in link: `<Site URL>/auth` offers "Open in the Readar app" (`readar://`, Tauri deep-link plugin) or the browser. The scheme only registers for the built, installed Mac app (not `pnpm app`), and Site URL is `http://localhost:1420` until the web app is hosted. iPhone gets universal links with the domain.

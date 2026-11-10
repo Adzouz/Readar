@@ -13,6 +13,7 @@ import { TopicIcon } from '@/deck/TopicIcon'
 import type { Action } from '@/deck/types'
 import { useDeckKeys } from '@/deck/useDeckKeys'
 import { isTauri } from '@/lib/platform'
+import { stopSpeaking, useSpeech } from '@/lib/speech'
 import { activeSourceCount, activeSourceIds, openSources, useSetup } from '@/onboarding/store'
 import { troubledCount, useSourceHealth } from '@/sync/sourceHealth'
 import { useStyle } from '@/theme/ThemeScope'
@@ -98,6 +99,14 @@ function TopicStage({ topicId, deckRef, actions }: StageProps & { topicId: strin
   const show = useToast((s) => s.show)
   const ahead = useSummarizeAhead((s) => s.ahead)
   const nextIds = queue.slice(0, AHEAD + 1).join(' ')
+
+  // Reading aloud is about the card on top: stop when it changes or the topic closes.
+  const topId = queue[0]
+  useEffect(() => {
+    return () => {
+      if (useSpeech.getState().speakingId === topId) stopSpeaking()
+    }
+  }, [topId])
 
   // "Summarize ahead": the card on top and the next few, as the deck moves.
   useEffect(() => {

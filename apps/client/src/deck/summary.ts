@@ -7,7 +7,7 @@ export interface CardSummary {
   readingMinutes: number | null
 }
 
-/** The card with Claude's summary in place of the feed excerpt (shows the AI badge). */
+/** The card with Claude's summary next to the feed excerpt, which stays as it was. */
 export function withSummary(item: Item, summary: CardSummary): Item {
   const minutes = summary.readingMinutes
   const length =
@@ -16,5 +16,5 @@ export function withSummary(item: Item, summary: CardSummary): Item {
       : item.type === 'article' || item.type === 'thread'
         ? `${minutes} min read`
         : `${minutes} min`
-  return { ...item, tldr: summary.tldr, points: summary.points, summarized: true, length }
+  return { ...item, summary: { tldr: summary.tldr, points: summary.points }, length }
 }

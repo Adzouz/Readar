@@ -56,14 +56,14 @@ export function ListView({ listId }: { listId: ListId }) {
                   <p className="text-[12.5px] text-muted">
                     {item.source} · {TYPE_LABEL[item.type]} · {topicName}
                   </p>
-                  {item.summarized && (
+                  {item.summary && (
                     <p className="mt-1 text-[13px] leading-snug">
-                      <AiBadge />
-                      {item.tldr}
+                      <AiBadge className="mr-1.5" />
+                      {item.summary.tldr}
                     </p>
                   )}
                 </div>
-                {!item.summarized && (
+                {!item.summary && (
                   <button
                     type="button"
                     aria-label={`Summarize ${item.title}`}

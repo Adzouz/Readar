@@ -2,15 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { SAMPLE_ITEMS } from '@/data/sample'
 import { withSummary } from './summary'
 
-const item = { ...SAMPLE_ITEMS[0]!, type: 'article' as const, length: '', summarized: false }
+const item = { ...SAMPLE_ITEMS[0]!, type: 'article' as const, length: '', summary: undefined }
 const summary = { tldr: 'New TL;DR', points: ['a', 'b', 'c'], readingMinutes: 6 }
 
 describe('withSummary', () => {
-  it("swaps the excerpt for Claude's summary and marks it", () => {
+  it("adds Claude's summary and keeps the source's excerpt", () => {
     expect(withSummary(item, summary)).toMatchObject({
-      tldr: 'New TL;DR',
-      points: ['a', 'b', 'c'],
-      summarized: true,
+      excerpt: item.excerpt,
+      summary: { tldr: 'New TL;DR', points: ['a', 'b', 'c'] },
       length: '6 min read',
     })
   })

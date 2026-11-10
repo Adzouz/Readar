@@ -28,10 +28,7 @@ const ids = SAMPLE_ITEMS.map((item) => item.id)
 beforeEach(() => {
   fake.key.mockReset().mockResolvedValue('sk-ant-api03-example')
   fake.write.mockReset().mockResolvedValue(written)
-  deckStore.getState().setContent(
-    SAMPLE_ITEMS.map((item) => ({ ...item, summarized: false })),
-    { liked: [], later: [], dismissed: [] },
-  )
+  deckStore.getState().setContent(SAMPLE_ITEMS, { liked: [], later: [], dismissed: [] })
   useSummaries.setState({ pending: {}, failed: {}, paused: null })
   useSummarizeAhead.setState({ ahead: false })
 })
@@ -40,8 +37,8 @@ describe('summarize', () => {
   it('puts the summary on the card', async () => {
     expect(await summarize(ids[0]!)).toEqual({ ok: true })
     expect(deckStore.getState().items[ids[0]!]).toMatchObject({
-      tldr: 'Claude TL;DR',
-      summarized: true,
+      excerpt: SAMPLE_ITEMS[0]!.excerpt,
+      summary: { tldr: 'Claude TL;DR', points: ['one', 'two', 'three'] },
     })
     expect(useSummaries.getState().pending).toEqual({})
   })
@@ -66,7 +63,7 @@ describe('summarize', () => {
     const result = await summarize(ids[0]!)
     expect(result).toMatchObject({ ok: false, reason: 'failed' })
     expect(useSummaries.getState().paused).toMatch(/out of credit/)
-    expect(deckStore.getState().items[ids[0]!]?.summarized).toBe(false)
+    expect(deckStore.getState().items[ids[0]!]?.summary).toBeUndefined()
   })
 })
 

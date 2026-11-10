@@ -61,7 +61,8 @@ const fail = (itemId: string, message: string): SummarizeResult => {
 async function inputFor(itemId: string) {
   const item = deckStore.getState().items[itemId]
   if (!item) return null
-  if (!supabase) return { title: item.title, url: item.url, source: item.source, text: item.tldr }
+  if (!supabase)
+    return { title: item.title, url: item.url, source: item.source, text: item.excerpt }
   const { data, error } = await supabase.rpc('summary_input', { p_item_id: itemId })
   if (error) throw new Error(error.message)
   const row = data?.[0]
@@ -90,7 +91,7 @@ async function save(itemId: string, summary: CardSummary, contentType: string): 
 /** Summarizes one card with the user's key. Safe to call twice: the second call is ignored. */
 export async function summarize(itemId: string): Promise<SummarizeResult> {
   const item = deckStore.getState().items[itemId]
-  if (!item || item.summarized) return { ok: true }
+  if (!item || item.summary) return { ok: true }
   if (useSummaries.getState().pending[itemId]) return { ok: false, reason: 'busy' }
   // Marked before the first await, so a double press can't pay for two calls.
   setPending(itemId, true)
@@ -139,7 +140,7 @@ export async function summarizeAhead(itemIds: string[]): Promise<void> {
     const { pending, failed, paused } = useSummaries.getState()
     if (paused || !useSummarizeAhead.getState().ahead) return
     const item = deckStore.getState().items[itemId]
-    if (!item || item.summarized || pending[itemId] || failed[itemId]) continue
+    if (!item || item.summary || pending[itemId] || failed[itemId]) continue
     const result = await summarize(itemId)
     if (!result.ok && result.reason === 'no-key') return
   }

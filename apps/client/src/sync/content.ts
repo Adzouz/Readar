@@ -151,7 +151,11 @@ export function connectDeckEffects(): void {
 
 // --- Cards and lists --------------------------------------------------------------------------
 
+/** Bumped when the card shape changes: an older cache is dropped and reloaded from Supabase. */
+const CACHE_VERSION = 2
+
 interface Cache {
+  v: number
   items: Item[]
   lists: Record<ListId, string[]>
 }
@@ -159,7 +163,8 @@ interface Cache {
 /** Shows the cards from the last session right away, before Supabase answers. */
 export function restoreCachedContent(): void {
   const cache = read<Cache>(CACHE_KEY)
-  if (cache?.items && cache.lists) deckStore.getState().setContent(cache.items, cache.lists)
+  if (cache?.v === CACHE_VERSION && cache.items && cache.lists)
+    deckStore.getState().setContent(cache.items, cache.lists)
 }
 
 let generation = 0
@@ -252,7 +257,7 @@ async function loadInto(
     ),
   )
   deckStore.getState().setContent(unique, lists)
-  write(CACHE_KEY, { items: unique, lists } satisfies Cache)
+  write(CACHE_KEY, { v: CACHE_VERSION, items: unique, lists } satisfies Cache)
   lastLoad = Date.now()
   // Same moments as the cards: start-up, topic changes, coming back to the app. Not awaited:
   // a slow status call must not hold up whatever waits for the cards.

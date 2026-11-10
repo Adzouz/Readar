@@ -16,8 +16,7 @@ const item = (id: string, topicId: string): Item => ({
   age: '1h',
   length: '1 min read',
   title: id,
-  tldr: '',
-  points: [],
+  excerpt: '',
   why: '',
   signal: 1,
   alsoCoveredBy: 0,
@@ -132,5 +131,17 @@ describe('deck store', () => {
     expect(deck.getState().view).toEqual({ kind: 'list', id: 'liked' })
     deck.getState().load(topics)
     expect(deck.getState().view).toEqual({ kind: 'topic', id: 't1' })
+  })
+
+  it('opens the AI summary only on a card that has one', () => {
+    const deck = setup()
+    deck.getState().toggleExpanded()
+    expect(deck.getState().expanded).toBe(false)
+    deck.getState().applySummary('a', { tldr: 'TL;DR', points: [], readingMinutes: null })
+    deck.getState().toggleExpanded()
+    expect(deck.getState().expanded).toBe(true)
+    expect(deck.getState().items.a?.excerpt).toBe('')
+    deck.getState().toggleExpanded()
+    expect(deck.getState().expanded).toBe(false)
   })
 })
