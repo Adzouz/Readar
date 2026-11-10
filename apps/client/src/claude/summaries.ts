@@ -100,39 +100,51 @@ async function save(
   if (error) console.warn('Readar: summary not saved.', error.message)
 }
 
+const transient = (message: string): SummarizeResult => ({
+  ok: false,
+  reason: 'failed',
+  message,
+  transient: true,
+})
+
 /** Summarizes one card with the user's key. Safe to call twice: the second call is ignored. */
 export async function summarize(itemId: string): Promise<SummarizeResult> {
   const item = deckStore.getState().items[itemId]
   if (!item || item.summary) return { ok: true }
   if (useSummaries.getState().pending[itemId]) return { ok: false, reason: 'busy' }
-  // Marked before the first await, so a double press can't pay for two calls.
+  // Marked before the first await, so a double press can't pay for two calls. Cleared on every
+  // way out, whatever throws.
   setPending(itemId, true)
-  const key = await readClaudeKey().catch(() => null)
-  if (!key) {
+  try {
+    return await summarizeNow(itemId)
+  } finally {
     setPending(itemId, false)
-    return { ok: false, reason: 'no-key' }
   }
+}
+
+async function summarizeNow(itemId: string): Promise<SummarizeResult> {
+  const key = await readClaudeKey().catch(() => null)
+  if (!key) return { ok: false, reason: 'no-key' }
   useSummaries.setState((state) => {
     const failed = { ...state.failed }
     delete failed[itemId]
     return { failed }
   })
-  const { summaryProblem, writeSummary } = await import('./summarize')
   // A summary that comes back after an account switch belongs to nobody on screen any more.
   const account = summaryAccount()
-  // Loading the article costs nothing on the user's key: a failure here (often offline) is
-  // always worth trying again, never a lasting skip.
+  // Loading the Claude code and the article costs nothing on the user's key: a failure here
+  // (often offline) is always worth trying again, never a lasting skip.
+  let api: typeof import('./summarize')
   let input: Awaited<ReturnType<typeof inputFor>>
   try {
+    api = await import('./summarize')
     input = await inputFor(itemId)
   } catch {
-    setPending(itemId, false)
-    const message = "Couldn't load this article. Check your connection."
-    return { ok: false, reason: 'failed', message, transient: true }
+    return transient("Couldn't load this article. Check your connection.")
   }
+  if (!input) return fail(itemId, 'The source gave no text to summarize. Open the original.')
   try {
-    if (!input) return fail(itemId, 'The source gave no text to summarize. Open the original.')
-    const written = await writeSummary(key, input)
+    const written = await api.writeSummary(key, input)
     if (!written) return fail(itemId, 'Claude declined to summarize this one.')
     if (summaryAccount() !== account) return { ok: false, reason: 'failed' }
     const summary: CardSummary = {
@@ -146,15 +158,11 @@ export async function summarize(itemId: string): Promise<SummarizeResult> {
     await save(itemId, summary, written.summary.contentType, written.model)
     return { ok: true }
   } catch (error) {
-    const problem = summaryProblem(error)
+    const problem = api.summaryProblem(error)
     if (problem.blocking) useSummaries.setState({ paused: problem.message })
     // Not a lasting skip: the same card can work in a minute.
-    if (problem.transient) {
-      return { ok: false, reason: 'failed', message: problem.message, transient: true }
-    }
+    if (problem.transient) return transient(problem.message)
     return fail(itemId, problem.message)
-  } finally {
-    setPending(itemId, false)
   }
 }
 
