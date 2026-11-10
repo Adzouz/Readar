@@ -10,7 +10,7 @@ type ProfileRow = {
   user_id: string
   style: 'glass' | 'editorial' | 'playful' | null
   mode: 'system' | 'light' | 'dark' | null
-  setup_step: 'style' | 'topics' | 'sources' | 'done'
+  setup_step: 'style' | 'topics' | 'sources' | 'claude' | 'done'
   setup_completed: boolean
   disabled_source_ids: string[]
   updated_at: string
@@ -74,6 +74,26 @@ export type SavedSetup = {
   sources: { topicId: string; url: string }[]
 }
 
+/** A summary written on the user's device with their own key. Private to that user (RLS). */
+export type SummaryRow = {
+  user_id: string
+  item_id: string
+  prompt_version: number
+  model: string
+  tldr: string
+  points: string[]
+  content_type: ItemCardRow['content_type'] | null
+  reading_minutes: number | null
+  created_at: string
+}
+
+export type SummaryInputRow = {
+  title: string
+  url: string
+  source_name: string | null
+  text: string | null
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -89,6 +109,12 @@ export type Database = {
         Update: Partial<UserItemRow>
         Relationships: []
       }
+      summaries: {
+        Row: SummaryRow
+        Insert: Omit<SummaryRow, 'user_id' | 'created_at'>
+        Update: Partial<SummaryRow>
+        Relationships: []
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -98,6 +124,7 @@ export type Database = {
       list_items: { Args: { [_ in never]: never }; Returns: ListItemRow[] }
       my_source_health: { Args: { [_ in never]: never }; Returns: SourceHealthRow[] }
       worker_active: { Args: { [_ in never]: never }; Returns: boolean }
+      summary_input: { Args: { p_item_id: string }; Returns: SummaryInputRow[] }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

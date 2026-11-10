@@ -6,23 +6,24 @@ Guide for coding agents and contributors working on Readar.
 
 ## Layout
 
-| Path                         | Role                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------ |
-| `apps/client`                | React app (Vite) shared by the Mac app, the iPhone app and the web app   |
-| `apps/client/src/theme`      | Theme tokens (`themes.css`), theme store, `ThemeScope`, light/dark mode  |
-| `apps/client/src/deck`       | Deck store (zustand), cards per theme, swipe gestures, keyboard, lists   |
-| `apps/client/src/shell`      | App layout per theme, navigation, settings, toasts                       |
-| `apps/client/src/onboarding` | Setup flow (style, topics, sources), setup store, deck wiring            |
-| `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                       |
-| `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox              |
-| `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)      |
-| `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)       |
-| `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)          |
-| `apps/client/src-tauri`      | Tauri 2 shell for macOS and iOS                                          |
-| `scripts/check-feeds.ts`     | Health check for every catalog feed (`pnpm check:feeds`)                 |
-| `scripts/db-push.ts`         | `pnpm db:push`: applies migrations with DATABASE_URL, never printed      |
-| `scripts/ui`                 | Layout check and screenshots against the dev server (Playwright, Chrome) |
-| `docs/brief.html`            | Source of the product brief page (published as a claude.ai artifact)     |
+| Path                         | Role                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `apps/client`                | React app (Vite) shared by the Mac app, the iPhone app and the web app     |
+| `apps/client/src/theme`      | Theme tokens (`themes.css`), theme store, `ThemeScope`, light/dark mode    |
+| `apps/client/src/deck`       | Deck store (zustand), cards per theme, swipe gestures, keyboard, lists     |
+| `apps/client/src/shell`      | App layout per theme, navigation, settings, toasts                         |
+| `apps/client/src/onboarding` | Setup flow (style, topics, sources, Claude), setup store, deck wiring      |
+| `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                         |
+| `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox                |
+| `apps/client/src/claude`     | Claude key (keychain or browser), key check, summaries on demand and ahead |
+| `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)        |
+| `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)         |
+| `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)            |
+| `apps/client/src-tauri`      | Tauri 2 shell for macOS and iOS                                            |
+| `scripts/check-feeds.ts`     | Health check for every catalog feed (`pnpm check:feeds`)                   |
+| `scripts/db-push.ts`         | `pnpm db:push`: applies migrations with DATABASE_URL, never printed        |
+| `scripts/ui`                 | Layout check and screenshots against the dev server (Playwright, Chrome)   |
+| `docs/brief.html`            | Source of the product brief page (published as a claude.ai artifact)       |
 
 ## Commands
 
@@ -59,9 +60,10 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 - `useStyle()` reads the closest `ThemeScope`, so previews can render a different theme than the app. Use it instead of reading the theme store in components.
 - zustand selectors must return stable references (no new arrays or objects); derive in the component body instead. Don't call `useSomething.getState()` in a component body (oxlint `react/hooks` flags it); use selectors there and `getState()` only in event handlers or outside React.
 - Layout: the page itself never scrolls (`html, body { overflow: hidden }`). Every scroll area must be `relative` so absolutely positioned children (like `sr-only` labels) stay inside it; otherwise the Mac app shows a double scrollbar.
-- Persisted client state: `readar.theme` (style, mode), `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links), `readar.sync` (setup changes not yet saved), `readar.deck` (cached cards and lists), `readar.outbox` (swipes not yet saved), `readar.auth` (Supabase session). `index.html` reads `readar.theme` before first paint, so keep its shape.
+- Persisted client state: `readar.theme` (style, mode), `readar.setup` (onboarding step, topics, keyword watches, disabled sources, user links), `readar.sync` (setup changes not yet saved), `readar.deck` (cached cards and lists), `readar.outbox` (swipes not yet saved), `readar.auth` (Supabase session), `readar.claude` (web only: the user's Claude key; Mac and iPhone keep it in the keychain), `readar.summaries` (the "Summarize ahead" switch). `index.html` reads `readar.theme` before first paint, so keep its shape.
 - Database: change the schema only through a new migration file. Shared tables get no client grants; expose shared content through security-definer functions with `set search_path = ''`. Update `apps/client/src/lib/database.ts` to match.
 - Respect `prefers-reduced-motion`: gestures still work, animations are skipped.
+- CSP (`src-tauri/tauri.conf.json`): `csp` is strict for builds, `devCsp` allows Vite's inline scripts and styles. Editing the theme script in `index.html` changes its hash: update `script-src` (`src/lib/csp.test.ts` fails until you do). A new remote origin (images, APIs) needs a `connect-src` or `img-src` entry.
 - Glass effects are CSS only (no macOS private APIs), to keep the Mac App Store possible.
 
 ## Claude
@@ -77,10 +79,24 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 
 ## Tooling notes
 
-- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. None of them posts or pushes without asking.
+- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. Outside a "deliver" request (see below), none of them posts or pushes without asking.
 
 - The owner's shell has an RTK hook that rewrites some commands (`curl`, `grep`, `cat`, `ls`) and filters their output. Use `rtk proxy <command>` for raw output. Don't pipe `curl` into `sh`: download to a file first. If `pnpm lint` prints "Linter process terminated abnormally", run `rtk proxy ./node_modules/.bin/oxlint --deny-warnings .` to see the real result.
 - Claude Code memory for this project is keyed to the folder path (`…/apps/sonar`); renaming the folder starts a fresh memory.
+
+## Delivering a feature or a fix
+
+The agent owns the codebase. When the owner says **"deliver"** a feature or a bug fix, run the whole loop without asking at each step:
+
+1. Run the gates from "Before handing back UI work", commit (conventional subject), push the branch.
+2. Open the PR on `Adzouz/Readar` with a title and a description (what, why, how to test, pending migrations, known limits).
+3. Start a fresh review by a neutral agent (a new subagent with no context from the implementation, following `readar-pr-review`). Post its findings on the PR as one review: inline comments for the issues and fixes to make, and a summary with a **GO / NO GO** status.
+4. Fix the findings (tests for each bug), run the gates, push, reply under the fixed threads with the commit.
+5. Run a new neutral re-review (`readar-pr-re-review`) and post it. Repeat 4–5 until the status is **GO**.
+
+Stay pragmatic: only blocking findings and nits marked _Address before merge_ (bugs that cost the user money or data, broken flows, rule violations) need another round. A **GO WITH NITS** whose remaining nits are minor or "follow-up is fine" counts as **GO**: list them in the final review as follow-ups (or in PLAN.md §11 when they matter later) instead of looping on them. A docs-only fix doesn't need a new review round.
+
+The other rules still hold during the loop: never apply migrations (the owner runs `pnpm db:push --yes`), never run `pnpm worker:once` unasked, no secrets in PRs or comments. Merging stays the owner's call.
 
 ## Session handoffs
 

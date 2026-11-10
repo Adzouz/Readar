@@ -19,6 +19,28 @@ const picks = {
 }
 const done = { step: 'done', completed: true, ...picks }
 
+// Sample cards come without a summary (only Claude writes those): give the top card a made-up
+// one through the app's own store module, served by Vite, then open it.
+const openSummary = async (page) => {
+  await page.evaluate(async () => {
+    // Same URL the app loaded (after an edit Vite adds a ?t= stamp), so it's the same store.
+    const loaded = performance
+      .getEntriesByType('resource')
+      .find((entry) => new URL(entry.name).pathname === '/src/deck/store.ts')
+    const { deckStore } = await import(/* @vite-ignore */ loaded?.name ?? '/src/deck/store.ts')
+    const { view, queues } = deckStore.getState()
+    const id = view.kind === 'topic' ? queues[view.id]?.[0] : undefined
+    if (!id) return
+    deckStore.getState().applySummary(id, {
+      tldr: 'Example summary for the screenshot: what the article says, in two sentences.',
+      points: ['First key point', 'Second key point', 'Third key point'],
+      readingMinutes: null,
+    })
+  })
+  await page.keyboard.press(' ')
+  await page.waitForTimeout(450)
+}
+
 const shots = [
   { name: '01-style', theme: { style: 'glass', mode: 'light' }, setup: null, ...desktop },
   {
@@ -31,6 +53,12 @@ const shots = [
     name: '03-sources',
     theme: { style: 'glass', mode: 'light' },
     setup: { step: 'sources', completed: false, ...picks },
+    ...desktop,
+  },
+  {
+    name: '03b-claude-dark',
+    theme: { style: 'editorial', mode: 'dark' },
+    setup: { step: 'claude', completed: false, ...picks },
     ...desktop,
   },
   {
@@ -56,9 +84,29 @@ const shots = [
     act: async (page) => {
       await page.keyboard.press('ArrowRight')
       await page.waitForTimeout(600)
-      await page.keyboard.press(' ')
-      await page.waitForTimeout(450)
+      await openSummary(page)
     },
+  },
+  {
+    name: '09b-summary-editorial-dark',
+    theme: { style: 'editorial', mode: 'dark' },
+    setup: done,
+    ...desktop,
+    act: openSummary,
+  },
+  {
+    name: '09c-summary-playful',
+    theme: { style: 'playful', mode: 'light' },
+    setup: done,
+    ...desktop,
+    act: openSummary,
+  },
+  {
+    name: '09d-summary-phone',
+    theme: { style: 'glass', mode: 'dark' },
+    setup: done,
+    ...phone,
+    act: openSummary,
   },
   {
     name: '10-empty-topic',

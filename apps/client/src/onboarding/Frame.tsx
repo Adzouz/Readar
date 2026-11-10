@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn'
 import { useSetup } from './store'
 
 interface FrameProps {
-  step: 1 | 2 | 3
+  step: 1 | 2 | 3 | 4
   title: string
   subtitle: string
   /** Actions of the step, in a bar pinned to the bottom. */
@@ -21,7 +21,7 @@ export function Frame({ step, title, subtitle, footer, children }: FrameProps) {
       <main className="relative min-h-0 flex-1 overflow-y-auto px-5 pt-[max(3.5rem,env(safe-area-inset-top))] pb-10 md:px-10">
         <div className="mx-auto max-w-[1100px]">
           <p className="text-[12px] font-semibold tracking-[0.12em] text-muted uppercase">
-            {completed ? 'Your setup' : `Step ${step} of 3`}
+            {completed ? 'Your setup' : `Step ${step} of 4`}
           </p>
           <h1 className="mt-2 font-display text-[clamp(28px,4vw,42px)] leading-tight font-bold tracking-tight text-balance">
             {title}

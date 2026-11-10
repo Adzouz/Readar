@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { ClaudeKey } from '@/claude/ClaudeKey'
 import { cn } from '@/lib/cn'
 import { useSetup } from '@/onboarding/store'
 import { THEME_STYLES, useTheme, type ThemeMode } from '@/theme/store'
@@ -134,9 +135,10 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
         </h3>
         <Account />
 
-        <p className="mt-4 rounded-ui bg-surface-2 px-3 py-2.5 text-[13px] text-muted">
-          Claude API key: coming next. It will stay on this device.
-        </p>
+        <h3 className="mt-4 mb-2 text-[12px] font-semibold tracking-[0.08em] text-muted uppercase">
+          Claude
+        </h3>
+        <ClaudeKey showAhead />
       </div>
     </div>
   )

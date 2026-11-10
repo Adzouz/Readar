@@ -14,6 +14,7 @@ import {
   sinceLastLoad,
 } from './content'
 import { captureAuthLink, listenForAppLinks } from './authLink'
+import { forgetSummaries } from './summaries'
 import { applySaved, fetchSaved, pushSetup, pushSetupSoon, syncSetup, watchSetup } from './setup'
 
 const REFRESH_AFTER_MS = 2 * 60 * 1000
@@ -24,6 +25,8 @@ const quietly = (task: Promise<unknown>): void => {
 
 /** The account changed (email sign-in): adopt its setup, or carry this device's setup into it. */
 async function onAccountSwitch(): Promise<void> {
+  // Summaries belong to the account that paid for them.
+  forgetSummaries()
   const saved = await fetchSaved()
   if (saved?.profile?.setup_completed) {
     applySaved(saved)

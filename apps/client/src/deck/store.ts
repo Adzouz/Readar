@@ -2,6 +2,7 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { SAMPLE_ITEMS } from '@/data/sample'
 import { supabase } from '@/lib/supabase'
+import { withSummary, type CardSummary } from './summary'
 import {
   LIST_FOR_ACTION,
   type Action,
@@ -40,7 +41,7 @@ export interface DeckState {
   lists: Record<ListId, string[]>
   history: { action: Action; itemId: string }[]
   view: View
-  /** Whether the top card shows its full summary. */
+  /** Whether the top card shows Claude's summary (only once it has one). */
   expanded: boolean
   /** Moves the top card of the current topic to a list. Returns the item, if any. */
   decide: (action: Action) => Item | undefined
@@ -57,6 +58,8 @@ export interface DeckState {
    * undo history still points to are kept so ⌘Z keeps working.
    */
   setContent: (items: Item[], lists: Record<ListId, string[]>) => void
+  /** Adds Claude's summary to a card, wherever the card is. */
+  applySummary: (itemId: string, summary: CardSummary) => void
 }
 
 const NO_LISTS: Record<ListId, string[]> = { liked: [], later: [], dismissed: [] }
@@ -162,7 +165,13 @@ export function createDeckStore(data: DeckData) {
     },
 
     select: (view) => set({ view, expanded: false }),
-    toggleExpanded: () => set((state) => ({ expanded: !state.expanded })),
+    toggleExpanded: () => {
+      const { expanded, view, queues, items } = get()
+      const top = view.kind === 'topic' ? items[queues[view.id]?.[0] ?? ''] : undefined
+      // Nothing to open before Claude has written a summary.
+      if (!expanded && !top?.summary) return
+      set({ expanded: !expanded })
+    },
 
     load: (topics) => {
       const { items, lists, view, topics: previous } = get()
@@ -188,6 +197,12 @@ export function createDeckStore(data: DeckData) {
         if (kept && !next[kept.id]) next[kept.id] = kept
       }
       set({ items: next, lists, ...deal(topics, dealt, lists) })
+    },
+
+    applySummary: (itemId, summary) => {
+      const item = get().items[itemId]
+      if (!item) return
+      set({ items: { ...get().items, [itemId]: withSummary(item, summary) } })
     },
   }))
 }

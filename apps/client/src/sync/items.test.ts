@@ -37,7 +37,7 @@ describe('toItem', () => {
       source: 'Example',
       age: '3h',
       length: '4 min read',
-      tldr: 'Excerpt',
+      excerpt: 'Excerpt',
       why: 'Matches: AI',
       alsoCoveredBy: 2,
     })
@@ -56,6 +56,6 @@ describe('toItem', () => {
     expect(item?.source).toBe('example.com')
     expect(item?.length).toBe('')
     expect(item?.alsoCoveredBy).toBe(0)
-    expect(item?.tldr).toMatch(/No preview/)
+    expect(item?.excerpt).toMatch(/No preview/)
   })
 })

@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { cn } from '@/lib/cn'
 import { useStyle } from '@/theme/ThemeScope'
 import { TYPE_LABEL } from './lists'
-import type { Item, Topic } from './types'
+import type { AiSummary, Item, Topic } from './types'
 
 export interface CardProps {
   item: Item
@@ -31,11 +31,10 @@ function GlassCard({ item, expanded }: CardProps) {
         <h2 className="font-display text-[20px] leading-tight font-bold tracking-tight text-balance">
           {item.title}
         </h2>
-        <p className="text-[15px] leading-relaxed">
-          {item.summarized && <AiBadge />}
-          {item.tldr}
-        </p>
-        {expanded && <Points points={item.points} className="list-disc pl-5" />}
+        <p className="text-[15px] leading-relaxed">{item.excerpt}</p>
+        {expanded && item.summary && (
+          <SummaryPanel summary={item.summary} className="bg-surface-2" list="list-disc" />
+        )}
         <Footer item={item} expanded={expanded} />
       </div>
     </article>
@@ -51,8 +50,14 @@ function EditorialCard({ item, expanded }: CardProps) {
       <h2 className="font-display text-[27px] leading-[1.14] font-semibold text-balance">
         {item.title}
       </h2>
-      <p className="text-[15.5px] leading-relaxed text-muted">{item.tldr}</p>
-      {expanded && <Points points={item.points} className="list-decimal pl-5 marker:text-muted" />}
+      <p className="text-[15.5px] leading-relaxed text-muted">{item.excerpt}</p>
+      {expanded && item.summary && (
+        <SummaryPanel
+          summary={item.summary}
+          className="border-l-2 border-accent bg-surface-2"
+          list="list-decimal marker:text-muted"
+        />
+      )}
       <Footer item={item} expanded={expanded} />
     </article>
   )
@@ -80,10 +85,14 @@ function PlayfulCard({ item, topic, expanded }: CardProps) {
         <h2 className="font-display text-[25px] leading-[1.05] font-extrabold text-balance">
           {item.title}
         </h2>
-        {expanded ? (
-          <Points points={item.points} className="list-disc pl-5 text-[14px]" />
-        ) : (
-          <p className="text-[14.5px] leading-snug opacity-95">{item.tldr}</p>
+        <p className="text-[14.5px] leading-snug opacity-95">{item.excerpt}</p>
+        {expanded && item.summary && (
+          <SummaryPanel
+            summary={item.summary}
+            className="bg-black/35 backdrop-blur"
+            list="list-disc"
+            onImage
+          />
         )}
         <p className="text-[12px] opacity-85">{dots(item.source, item.age)}</p>
       </div>
@@ -146,22 +155,48 @@ function Signal({ level }: { level: 1 | 2 | 3 }) {
   )
 }
 
-function AiBadge() {
+export function AiBadge({ onImage, className }: { onImage?: boolean; className?: string }) {
   return (
-    <span className="mr-1.5 inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 align-[1px] text-[11px] font-bold text-accent-ink">
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 align-[1px] text-[11px] font-bold',
+        onImage ? 'bg-white/25 text-white' : 'bg-accent-soft text-accent-ink',
+        className,
+      )}
+    >
       <Sparkles size={10} aria-hidden />
       AI
     </span>
   )
 }
 
-function Points({ points, className }: { points: string[]; className?: string }) {
+interface SummaryPanelProps {
+  summary: AiSummary
+  /** Background and border of the panel, per style. */
+  className: string
+  /** List marker classes, per style. */
+  list: string
+  /** On the Playful gradient: white text, light badge. */
+  onImage?: boolean
+}
+
+/** Claude's summary, set apart from the source's excerpt and labeled as AI. */
+function SummaryPanel({ summary, className, list, onImage }: SummaryPanelProps) {
   return (
-    <ul className={cn('space-y-1 text-[14.5px] leading-snug', className)}>
-      {points.map((point) => (
-        <li key={point}>{point}</li>
-      ))}
-    </ul>
+    <section aria-label="AI summary" className={cn('grid gap-2 rounded-ui p-3.5', className)}>
+      <p className="flex items-center gap-1.5 text-[11.5px] font-semibold">
+        <AiBadge onImage={onImage} />
+        <span className={onImage ? 'opacity-85' : 'text-muted'}>Summary by Claude</span>
+      </p>
+      <p className="text-[14.5px] leading-snug">{summary.tldr}</p>
+      {summary.points.length > 0 && (
+        <ul className={cn('space-y-1 pl-5 text-[14px] leading-snug', list)}>
+          {summary.points.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
@@ -173,7 +208,11 @@ function Footer({ item, expanded }: { item: Item; expanded: boolean }) {
       </span>
       {item.alsoCoveredBy > 0 && <span>Also covered by {item.alsoCoveredBy} sources</span>}
       <span className="ml-auto hidden sm:inline">
-        {expanded ? 'Space to collapse' : 'Space for the full summary'}
+        {!item.summary
+          ? 'A for an AI summary'
+          : expanded
+            ? 'Space to hide the AI summary'
+            : 'Space for the AI summary'}
       </span>
     </div>
   )

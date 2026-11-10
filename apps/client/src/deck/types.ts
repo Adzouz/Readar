@@ -13,6 +13,11 @@ export interface Topic {
   keyword?: boolean
 }
 
+export interface AiSummary {
+  tldr: string
+  points: string[]
+}
+
 export interface Item {
   id: string
   topicId: string
@@ -22,11 +27,10 @@ export interface Item {
   age: string
   length: string
   title: string
-  /** Claude's TL;DR, or the source's own excerpt until the item is summarized. */
-  tldr: string
-  points: string[]
-  /** True when tldr and points come from Claude (shows the AI badge). */
-  summarized?: boolean
+  /** The source's own description of the article. Always shown, never Claude's words. */
+  excerpt: string
+  /** Claude's summary, once the user asked for it. Shown apart, under an AI label. */
+  summary?: AiSummary
   why: string
   /** Relevance shown as signal strength, 1 (low) to 3 (strong). */
   signal: 1 | 2 | 3

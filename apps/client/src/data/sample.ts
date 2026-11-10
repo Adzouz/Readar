@@ -1,6 +1,7 @@
 import type { Item, Topic } from '@/deck/types'
 
-// Sample content for Phase 0. Sources and articles are fictional; links go to example.com.
+// Sample content for Phase 0. No card comes with a summary: only Claude writes those.
+// Sources and articles are fictional; links go to example.com.
 // Topic ids match the catalog (ai, design, space) and the keyword watch id for "Strapi", so
 // these cards show up when the user follows those topics.
 
@@ -19,7 +20,6 @@ const strapi: Topic = {
 const item = (topic: Topic, index: number, fields: Omit<Item, 'id' | 'topicId'>): Item => ({
   id: `${topic.id}-${index}`,
   topicId: topic.id,
-  summarized: true,
   ...fields,
 })
 
@@ -30,12 +30,8 @@ const glassSlider = item(design, 0, {
   age: '1h',
   length: '6 min read',
   title: 'Designing for the glass slider: readable UI at every transparency level',
-  tldr: 'Now that people choose how much glass they see, text contrast has to hold from fully clear to fully frosted.',
-  points: [
-    'Test over the busiest wallpaper, not the default one',
-    'Keep vibrancy for secondary text only',
-    'Give key controls a solid fallback at low transparency',
-  ],
+  excerpt:
+    'Now that people choose how much glass they see, text contrast has to hold from fully clear to fully frosted.',
   why: 'Matches: UI design · macOS',
   signal: 3,
   alsoCoveredBy: 0,
@@ -50,12 +46,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '2h',
     length: '7 min read',
     title: 'We moved summarization on-device. Here is what broke.',
-    tldr: 'Latency dropped from 1.8 s to 300 ms, but cold starts and battery drain became the new problems.',
-    points: [
-      '4-bit quantization kept quality within 2% on their own eval set',
-      'Preloading the model at launch fixed the cold-start stutter',
-      'Heavy use cost about 6% battery per hour on older phones',
-    ],
+    excerpt:
+      'Latency dropped from 1.8 s to 300 ms, but cold starts and battery drain became the new problems.',
     why: 'Matches: on-device AI · mobile',
     signal: 3,
     alsoCoveredBy: 0,
@@ -68,12 +60,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '5h',
     length: '14:32',
     title: 'Tauri 2 vs Electron: the same app built twice',
-    tldr: 'A side-by-side build of one note-taking app. The trade-offs come down to bundle size, memory use and rendering consistency.',
-    points: [
-      'Bundle size and idle memory favor the Rust shell',
-      'Chromium everywhere means fewer CSS surprises',
-      'Updater, tray and deep-link plugins compared one by one',
-    ],
+    excerpt:
+      'A side-by-side build of one note-taking app. The trade-offs come down to bundle size, memory use and rendering consistency.',
     why: 'Matches: desktop apps · Rust',
     signal: 2,
     alsoCoveredBy: 0,
@@ -86,12 +74,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '3h',
     length: '4 min read',
     title: 'A new open-weight model leads the small-model coding benchmarks',
-    tldr: 'Four outlets covered the release. The gains are mostly on coding tasks, and the license allows commercial use.',
-    points: [
-      'Runs on a single consumer GPU',
-      'Weaker than larger models on long documents',
-      'Weights and evaluation code are both public',
-    ],
+    excerpt:
+      'Four outlets covered the release. The gains are mostly on coding tasks, and the license allows commercial use.',
     why: 'Matches: LLMs · open source',
     signal: 2,
     alsoCoveredBy: 4,
@@ -104,12 +88,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '38m',
     length: '214 replies',
     title: 'How do you keep up with tech news without drowning?',
-    tldr: 'Most replies settle on fewer sources, one daily check-in and aggressive unsubscribing. A few swear by feeds plus filters.',
-    points: [
-      'Top answer: one batch a day, no notifications',
-      'Several people only follow keyword alerts for their own stack',
-      'Recurring complaint: the same story repeated across ten sites',
-    ],
+    excerpt:
+      'Most replies settle on fewer sources, one daily check-in and aggressive unsubscribing. A few swear by feeds plus filters.',
     why: 'Matches: productivity · tech',
     signal: 2,
     alsoCoveredBy: 0,
@@ -122,12 +102,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '1d',
     length: '38 min',
     title: 'Ranking a personal feed with embeddings, explained in one episode',
-    tldr: 'How to score articles against a topic vector, then nudge that vector with every like and dismiss.',
-    points: [
-      'One vector per topic, updated on each swipe',
-      'Blend relevance with freshness so old posts do not dominate',
-      'Cache embeddings per URL to keep costs near zero',
-    ],
+    excerpt:
+      'How to score articles against a topic vector, then nudge that vector with every like and dismiss.',
     why: 'Matches: AI · recommendation',
     signal: 3,
     alsoCoveredBy: 0,
@@ -141,12 +117,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '6h',
     length: '9:05',
     title: 'Five variable-font axes worth using in product UI',
-    tldr: 'Weight and optical size are the safe bets. Width and grade help dense dashboards and dark mode.',
-    points: [
-      'Optical size fixes small labels for free',
-      'Grade keeps text width stable when switching to dark mode',
-      'Animate weight sparingly: it reflows text',
-    ],
+    excerpt:
+      'Weight and optical size are the safe bets. Width and grade help dense dashboards and dark mode.',
     why: 'Matches: typography',
     signal: 2,
     alsoCoveredBy: 0,
@@ -159,12 +131,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '2d',
     length: '9 min read',
     title: 'Teardown: 12 apps that reach value in under a minute',
-    tldr: 'The best ones ask for interests first, show real content right away, and leave sign-up for later.',
-    points: [
-      'Big visual topic tiles beat long checklists',
-      'Ask for an account after the first useful moment',
-      'A progress bar cuts drop-off in multi-step setup',
-    ],
+    excerpt:
+      'The best ones ask for interests first, show real content right away, and leave sign-up for later.',
     why: 'Matches: onboarding · product',
     signal: 3,
     alsoCoveredBy: 0,
@@ -177,12 +145,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '4h',
     length: '8 min read',
     title: 'Small, cheap and many: the new playbook for lunar landers',
-    tldr: 'Agencies are trading one flagship mission for several low-cost landers, accepting more failures in exchange for faster learning.',
-    points: [
-      'Several landers share one launch to cut costs',
-      'Payloads are mostly small science instruments',
-      'Failures are planned for in the budget',
-    ],
+    excerpt:
+      'Agencies are trading one flagship mission for several low-cost landers, accepting more failures in exchange for faster learning.',
     why: 'Matches: space exploration',
     signal: 2,
     alsoCoveredBy: 0,
@@ -195,12 +159,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '1d',
     length: '18:47',
     title: 'How a space telescope keeps its mirror segments aligned',
-    tldr: "Tiny motors nudge each segment by a fraction of a hair's width, guided by images of a bright star.",
-    points: [
-      'Alignment is checked on a regular schedule',
-      'Temperature swings cause most of the drift',
-      'Some ground telescopes use the same idea',
-    ],
+    excerpt:
+      "Tiny motors nudge each segment by a fraction of a hair's width, guided by images of a bright star.",
     why: 'Matches: astronomy',
     signal: 2,
     alsoCoveredBy: 0,
@@ -213,12 +173,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '7h',
     length: '5 min read',
     title: 'Migrating a content model to Strapi 5, step by step',
-    tldr: 'A log of moving 40 content types, with each gotcha hit along the way and how it was fixed.',
-    points: [
-      'Map relations before running the migration',
-      'Draft and publish changes how drafts are queried',
-      'Test API responses, not only the admin panel',
-    ],
+    excerpt:
+      'A log of moving 40 content types, with each gotcha hit along the way and how it was fixed.',
     why: 'Keyword: “Strapi” in the title',
     signal: 3,
     alsoCoveredBy: 0,
@@ -231,12 +187,8 @@ export const SAMPLE_ITEMS: Item[] = [
     age: '1d',
     length: '96 replies',
     title: 'Which headless CMS do you use for multilingual sites?',
-    tldr: 'A long comparison thread. Strapi comes up often, mostly about its localization setup and self-hosting.',
-    points: [
-      'Most replies weigh hosting cost against convenience',
-      'Localization workflows are the main decision factor',
-      'Several people describe migrating between tools',
-    ],
+    excerpt:
+      'A long comparison thread. Strapi comes up often, mostly about its localization setup and self-hosting.',
     why: 'Keyword: “Strapi” in 14 replies',
     signal: 2,
     alsoCoveredBy: 0,
