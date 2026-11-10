@@ -140,7 +140,9 @@ export async function summarize(itemId: string): Promise<SummarizeResult> {
     const problem = summaryProblem(error)
     if (problem.blocking) useSummaries.setState({ paused: problem.message })
     // Not a lasting skip: the same card can work in a minute.
-    else return { ok: false, reason: 'failed', message: problem.message, transient: true }
+    if (problem.transient) {
+      return { ok: false, reason: 'failed', message: problem.message, transient: true }
+    }
     return fail(itemId, problem.message)
   } finally {
     setPending(itemId, false)

@@ -16,11 +16,17 @@ export interface SummaryProblem {
   message: string
   /** Key or account trouble: every other call would fail the same way. */
   blocking: boolean
+  /** Offline, rate limited or Claude busy: the same card can work in a minute. */
+  transient: boolean
 }
 
 export function summaryProblem(error: unknown): SummaryProblem {
   if (error instanceof APIConnectionError) {
-    return { message: "Couldn't reach Claude. Check your connection.", blocking: false }
+    return {
+      message: "Couldn't reach Claude. Check your connection.",
+      blocking: false,
+      transient: true,
+    }
   }
   if (error instanceof APIError) {
     // No credit comes back as a 400 invalid_request_error, not a 402.
@@ -28,25 +34,36 @@ export function summaryProblem(error: unknown): SummaryProblem {
       return {
         message: 'Your Claude Console account is out of credit. Add credit, then try again.',
         blocking: true,
+        transient: false,
       }
     }
     if (error.status === 401) {
       return {
         message: "Claude didn't accept your key. Connect it again in Settings.",
         blocking: true,
+        transient: false,
       }
     }
     if (error.status === 403) {
-      return { message: "Your key isn't allowed to use the API.", blocking: true }
+      return { message: "Your key isn't allowed to use the API.", blocking: true, transient: false }
     }
     if (error.status === 429) {
-      return { message: 'Claude is limiting requests. Try again in a minute.', blocking: false }
+      return {
+        message: 'Claude is limiting requests. Try again in a minute.',
+        blocking: false,
+        transient: true,
+      }
     }
     if (error.status === 529 || (error.status ?? 0) >= 500) {
-      return { message: 'Claude is busy right now. Try again in a moment.', blocking: false }
+      return {
+        message: 'Claude is busy right now. Try again in a moment.',
+        blocking: false,
+        transient: true,
+      }
     }
   }
-  return { message: "Claude couldn't summarize this one.", blocking: false }
+  // Anything else (an unexpected answer) would likely fail the same way again: a lasting skip.
+  return { message: "Claude couldn't summarize this one.", blocking: false, transient: false }
 }
 
 export interface Written {

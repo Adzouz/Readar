@@ -101,6 +101,20 @@ describe('summarizeAhead', () => {
   })
 })
 
+describe('summarizeAhead and lasting errors', () => {
+  it('skips a card that fails the same way every time, and prepares the next ones', async () => {
+    useSummarizeAhead.setState({ ahead: true })
+    fake.write.mockRejectedValueOnce(new Error('unexpected answer'))
+    await summarizeAhead(ids)
+    expect(useSummaries.getState().failed[ids[0]!]).toBeDefined()
+    expect(deckStore.getState().items[ids[1]!]?.summary).toBeDefined()
+
+    const calls = fake.write.mock.calls.length
+    await summarizeAhead(ids)
+    expect(fake.write.mock.calls.length).toBe(calls) // no paid call again for the same card
+  })
+})
+
 describe('account switch', () => {
   it('drops a summary that comes back after the switch', async () => {
     const { forgetSummaries } = await import('@/sync/summaries')

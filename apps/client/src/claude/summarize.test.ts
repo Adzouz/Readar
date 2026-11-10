@@ -11,7 +11,11 @@ describe('summaryProblem', () => {
     const credit = summaryProblem(
       status(400, '400 Your credit balance is too low to access the Anthropic API.'),
     )
-    expect(credit).toEqual({ message: expect.stringMatching(/out of credit/), blocking: true })
+    expect(credit).toEqual({
+      message: expect.stringMatching(/out of credit/),
+      blocking: true,
+      transient: false,
+    })
     expect(summaryProblem(status(401))).toMatchObject({ blocking: true })
     expect(summaryProblem(status(403))).toMatchObject({ blocking: true })
   })
@@ -21,5 +25,13 @@ describe('summaryProblem', () => {
     expect(summaryProblem(status(529)).message).toMatch(/busy/)
     expect(summaryProblem(new APIConnectionError({ message: 'fetch failed' })).blocking).toBe(false)
     expect(summaryProblem(status(400, 'max_tokens too large')).blocking).toBe(false)
+  })
+
+  it('only calls passing trouble transient', () => {
+    expect(summaryProblem(status(429)).transient).toBe(true)
+    expect(summaryProblem(status(503)).transient).toBe(true)
+    expect(summaryProblem(new APIConnectionError({ message: 'fetch failed' })).transient).toBe(true)
+    expect(summaryProblem(status(400, 'max_tokens too large')).transient).toBe(false)
+    expect(summaryProblem(new Error('parse failed')).transient).toBe(false)
   })
 })
