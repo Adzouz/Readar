@@ -79,10 +79,22 @@ Port 1420 is strict, and the owner often has `pnpm dev` or `pnpm app` running al
 
 ## Tooling notes
 
-- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. None of them posts or pushes without asking.
+- PR review loop (project skills in `.claude/skills/`): `readar-pr-review` reviews a PR against these rules, `readar-address-comments` fixes the threads you pick and hands commit and push back to you, `readar-pr-re-review` checks the fixes and the new commits. Outside a "deliver" request (see below), none of them posts or pushes without asking.
 
 - The owner's shell has an RTK hook that rewrites some commands (`curl`, `grep`, `cat`, `ls`) and filters their output. Use `rtk proxy <command>` for raw output. Don't pipe `curl` into `sh`: download to a file first. If `pnpm lint` prints "Linter process terminated abnormally", run `rtk proxy ./node_modules/.bin/oxlint --deny-warnings .` to see the real result.
 - Claude Code memory for this project is keyed to the folder path (`…/apps/sonar`); renaming the folder starts a fresh memory.
+
+## Delivering a feature or a fix
+
+The agent owns the codebase. When the owner says **"deliver"** a feature or a bug fix, run the whole loop without asking at each step:
+
+1. Run the gates from "Before handing back UI work", commit (conventional subject), push the branch.
+2. Open the PR on `Adzouz/Readar` with a title and a description (what, why, how to test, pending migrations, known limits).
+3. Start a fresh review by a neutral agent (a new subagent with no context from the implementation, following `readar-pr-review`). Post its findings on the PR as one review: inline comments for the issues and fixes to make, and a summary with a **GO / NO GO** status.
+4. Fix the findings (tests for each bug), run the gates, push, reply under the fixed threads with the commit.
+5. Run a new neutral re-review (`readar-pr-re-review`) and post it. Repeat 4–5 until the status is **GO**.
+
+The other rules still hold during the loop: never apply migrations (the owner runs `pnpm db:push --yes`), never run `pnpm worker:once` unasked, no secrets in PRs or comments. Merging stays the owner's call.
 
 ## Session handoffs
 
