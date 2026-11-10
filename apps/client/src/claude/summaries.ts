@@ -120,8 +120,17 @@ export async function summarize(itemId: string): Promise<SummarizeResult> {
   const { summaryProblem, writeSummary } = await import('./summarize')
   // A summary that comes back after an account switch belongs to nobody on screen any more.
   const account = summaryAccount()
+  // Loading the article costs nothing on the user's key: a failure here (often offline) is
+  // always worth trying again, never a lasting skip.
+  let input: Awaited<ReturnType<typeof inputFor>>
   try {
-    const input = await inputFor(itemId)
+    input = await inputFor(itemId)
+  } catch {
+    setPending(itemId, false)
+    const message = "Couldn't load this article. Check your connection."
+    return { ok: false, reason: 'failed', message, transient: true }
+  }
+  try {
     if (!input) return fail(itemId, 'The source gave no text to summarize. Open the original.')
     const written = await writeSummary(key, input)
     if (!written) return fail(itemId, 'Claude declined to summarize this one.')
