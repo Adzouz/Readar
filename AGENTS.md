@@ -94,6 +94,8 @@ The agent owns the codebase. When the owner says **"deliver"** a feature or a bu
 4. Fix the findings (tests for each bug), run the gates, push, reply under the fixed threads with the commit.
 5. Run a new neutral re-review (`readar-pr-re-review`) and post it. Repeat 4–5 until the status is **GO**.
 
+Stay pragmatic: only blocking findings and nits marked _Address before merge_ (bugs that cost the user money or data, broken flows, rule violations) need another round. A **GO WITH NITS** whose remaining nits are minor or "follow-up is fine" counts as **GO**: list them in the final review as follow-ups (or in PLAN.md §11 when they matter later) instead of looping on them. A docs-only fix doesn't need a new review round.
+
 The other rules still hold during the loop: never apply migrations (the owner runs `pnpm db:push --yes`), never run `pnpm worker:once` unasked, no secrets in PRs or comments. Merging stays the owner's call.
 
 ## Session handoffs
