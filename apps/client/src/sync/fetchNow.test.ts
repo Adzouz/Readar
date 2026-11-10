@@ -3,8 +3,8 @@ import type { FetchStatusRow } from '@/lib/database'
 
 const fake = vi.hoisted(() => ({
   rpc: vi.fn<(name: string) => Promise<{ data: unknown; error: null | { message: string } }>>(),
-  load: vi.fn(async () => {}),
-  push: vi.fn(async () => true),
+  load: vi.fn<() => Promise<void>>(async () => {}),
+  push: vi.fn<() => Promise<boolean>>(async () => true),
 }))
 vi.mock('@/lib/supabase', () => ({ supabase: { rpc: fake.rpc } }))
 vi.mock('./content', () => ({ loadContent: fake.load }))
@@ -100,6 +100,13 @@ describe('fetchNewArticles', () => {
     fake.rpc.mockResolvedValue({ data: null, error: { message: 'function not found' } })
     await fetchNewArticles()
     expect(useFetchNow.getState().status).toBe('idle')
+    expect(useToast.getState().message).toMatch(/Couldn't fetch right away/)
+  })
+
+  it('says so when the setup could not be saved', async () => {
+    fake.push.mockResolvedValueOnce(false)
+    await fetchNewArticles()
+    expect(fake.rpc).not.toHaveBeenCalled()
     expect(useToast.getState().message).toMatch(/Couldn't fetch right away/)
   })
 })

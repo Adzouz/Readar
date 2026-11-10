@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useSetup, type SetupState } from '@/onboarding/store'
 import { useToast } from '@/shell/toast'
 import { loadContent } from './content'
-import { pushSetup } from './setup'
+import { isApplyingSaved, pushSetup } from './setup'
 import { loadSourceHealth } from './sourceHealth'
 
 export type FetchNowStatus = 'idle' | 'fetching' | 'scheduled'
@@ -49,6 +49,8 @@ const later = (a: string, b: string) => Date.parse(a) >= Date.parse(b)
 
 let latest = 0
 
+const NOT_NOW = "Couldn't fetch right away. New sources are fetched on the next round."
+
 /** Asks the worker for a pass now, then reloads the cards when it is done. */
 export async function fetchNewArticles(): Promise<void> {
   if (!supabase) return
@@ -58,16 +60,16 @@ export async function fetchNewArticles(): Promise<void> {
   }
   set('fetching')
   // The worker reads the saved setup: the new sources must be in Supabase first.
-  if (!(await pushSetup())) return set('idle')
+  if (!(await pushSetup())) {
+    set('idle')
+    if (run === latest) useToast.getState().show(NOT_NOW)
+    return
+  }
   const { data: requestedAt, error } = await supabase.rpc('request_fetch')
   if (error || !requestedAt) {
     console.warn('Readar: fetch not requested.', error?.message)
     set('idle')
-    if (run === latest) {
-      useToast
-        .getState()
-        .show("Couldn't fetch right away. New sources are fetched on the next round.")
-    }
+    if (run === latest) useToast.getState().show(NOT_NOW)
     return
   }
   const before = new Set(Object.keys(deckStore.getState().items))
@@ -117,6 +119,8 @@ export async function fetchNewArticles(): Promise<void> {
 export function watchForNewSources(): () => void {
   let added = false
   return useSetup.subscribe((state, previous) => {
+    // A setup restored from the server (sign-in, other device) isn't new to the worker.
+    if (isApplyingSaved()) return
     if (addsSources(previous, state)) added = true
     if (added && state.step === 'done' && previous.step !== 'done') {
       added = false

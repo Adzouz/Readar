@@ -114,27 +114,42 @@ describe('blockedByFirewall', () => {
 })
 
 describe('isPrivateAddress', () => {
-  it('blocks loopback, private ranges, cloud metadata and IPv6 local addresses', () => {
-    for (const ip of [
-      '127.0.0.1',
-      '10.1.2.3',
-      '172.20.0.1',
-      '192.168.1.10',
-      '169.254.169.254',
-      '100.64.0.1',
-      '0.0.0.0',
-      '::1',
-      'fd00::1',
-      'fe80::1',
-      '::ffff:127.0.0.1',
-    ]) {
-      expect(isPrivateAddress(ip), ip).toBe(true)
-    }
+  it.each([
+    '127.0.0.1',
+    '10.1.2.3',
+    '172.20.0.1',
+    '192.168.1.10',
+    '169.254.169.254',
+    '100.64.0.1',
+    '0.0.0.0',
+    '::',
+    '::1',
+    'fd00::1',
+    'fe80::1',
+    'fe80::1%en0',
+    'ff02::1',
+    '::ffff:127.0.0.1',
+    // How the URL parser writes [::ffff:127.0.0.1] and [::ffff:169.254.169.254]
+    '::ffff:7f00:1',
+    '::ffff:a9fe:a9fe',
+    '0:0:0:0:0:ffff:7f00:1',
+    '64:ff9b::7f00:1',
+    '2002:7f00:1::1',
+    '::127.0.0.1',
+  ])('refuses %s', (ip) => {
+    expect(isPrivateAddress(ip)).toBe(true)
   })
 
-  it('lets public addresses through', () => {
-    for (const ip of ['185.199.108.153', '8.8.8.8', '172.32.0.1', '2606:4700::6810:84e5']) {
-      expect(isPrivateAddress(ip), ip).toBe(false)
-    }
+  it.each(['185.199.108.153', '8.8.8.8', '172.32.0.1', '2606:4700::6810:84e5', '::ffff:808:808'])(
+    'lets %s through',
+    (ip) => {
+      expect(isPrivateAddress(ip)).toBe(false)
+    },
+  )
+
+  it('agrees with what the URL parser hands it', () => {
+    const host = (url: string) => new URL(url).hostname.replace(/^\[|\]$/g, '')
+    expect(isPrivateAddress(host('http://[::ffff:127.0.0.1]:8080/feed'))).toBe(true)
+    expect(isPrivateAddress(host('http://[::ffff:169.254.169.254]/'))).toBe(true)
   })
 })

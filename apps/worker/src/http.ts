@@ -13,31 +13,66 @@ const MAX_REDIRECTS = 5
 
 const v4 = (ip: string) => ip.split('.').map(Number) as [number, number, number, number]
 
-/** Loopback, private, link-local (cloud metadata), carrier-grade NAT, multicast, reserved. */
-export function isPrivateAddress(ip: string): boolean {
-  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip)?.[1]
-  if (mapped) return isPrivateAddress(mapped)
-  if (isIP(ip) === 4) {
-    const [a, b] = v4(ip)
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 198 && (b === 18 || b === 19)) ||
-      a >= 224
-    )
-  }
-  const lower = ip.toLowerCase()
+function privateV4(ip: string): boolean {
+  const [a, b] = v4(ip)
   return (
-    lower === '::' ||
-    lower === '::1' ||
-    /^f[cd]/.test(lower) || // unique local
-    /^fe[89ab]/.test(lower) || // link-local
-    /^ff/.test(lower) // multicast
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  )
+}
+
+/** The eight 16-bit groups of an IPv6 address, with `::` and a dotted IPv4 tail expanded. */
+function groups6(ip: string): number[] | null {
+  let text = ip.toLowerCase().replace(/%.*$/, '') // drop a zone id (fe80::1%en0)
+  const tail = /(\d+\.\d+\.\d+\.\d+)$/.exec(text)?.[1]
+  if (tail) {
+    const [a, b, c, d] = v4(tail)
+    text =
+      text.slice(0, -tail.length) + `${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`
+  }
+  const [head = '', rest] = text.split('::')
+  const left = head ? head.split(':') : []
+  const right = rest ? rest.split(':') : []
+  const fill = rest === undefined ? [] : Array<string>(8 - left.length - right.length).fill('0')
+  const all = [...left, ...fill, ...right].map((group) => parseInt(group, 16))
+  return all.length === 8 && all.every((group) => group >= 0 && group <= 0xffff) ? all : null
+}
+
+const fromGroups = (high: number, low: number) =>
+  `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`
+
+/**
+ * Loopback, private, link-local (cloud metadata), carrier-grade NAT, multicast, reserved, in
+ * IPv4 and IPv6, including IPv6 forms that carry an IPv4 address (mapped `::ffff:7f00:1`,
+ * NAT64, 6to4), whatever way they are written.
+ */
+export function isPrivateAddress(ip: string): boolean {
+  if (isIP(ip) === 4) return privateV4(ip)
+  const g = groups6(ip)
+  if (!g) return true // not an address we understand: refuse
+  const [g0 = 0, g1 = 0, g2 = 0, , , g5 = 0, g6 = 0, g7 = 0] = g
+  const zeros = (count: number) => g.slice(0, count).every((group) => group === 0)
+  // ::a.b.c.d (also :: and ::1) and ::ffff:a.b.c.d
+  if (zeros(5) && (g5 === 0 || g5 === 0xffff)) return privateV4(fromGroups(g6, g7))
+  // NAT64 64:ff9b::/96
+  if (g0 === 0x64 && g1 === 0xff9b && g.slice(2, 6).every((group) => group === 0)) {
+    return privateV4(fromGroups(g6, g7))
+  }
+  // 6to4 2002:AABB:CCDD::/48
+  if (g0 === 0x2002) return privateV4(fromGroups(g1, g2))
+  return (
+    (g0 & 0xfe00) === 0xfc00 || // unique local
+    (g0 & 0xffc0) === 0xfe80 || // link-local
+    (g0 & 0xffc0) === 0xfec0 || // old site-local
+    (g0 & 0xff00) === 0xff00 || // multicast
+    (g0 === 0x2001 && g1 === 0) // Teredo
   )
 }
 
