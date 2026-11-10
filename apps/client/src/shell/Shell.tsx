@@ -224,7 +224,7 @@ function FetchNotice() {
       )}
       {status === 'fetching'
         ? 'Fetching new articles…'
-        : "Your new sources will be fetched within the hour. Cards appear here when they're in."}
+        : "Your new sources will be fetched within 15 minutes. Cards appear here when they're in."}
     </p>
   )
 }

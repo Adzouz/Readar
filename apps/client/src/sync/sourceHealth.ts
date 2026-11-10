@@ -15,8 +15,8 @@ export interface SourceHealth {
 }
 
 export const SYNCING: SourceHealth = { state: 'waiting', label: 'Syncing…' }
-/** Readar fetches every hour (GitHub Actions); a running worker fetches sooner. */
-export const NOT_FETCHED: SourceHealth = { state: 'waiting', label: 'Fetched within the hour' }
+/** Readar fetches every 15 minutes (GitHub Actions); a running worker fetches sooner. */
+export const NOT_FETCHED: SourceHealth = { state: 'waiting', label: 'Fetched within 15 minutes' }
 
 /** Turns a worker error into words people can act on. */
 function problemOf(row: SourceHealthRow): string {
