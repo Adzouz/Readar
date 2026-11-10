@@ -18,6 +18,8 @@ const row = (items: number): SourceHealthRow => ({
   error_count: 0,
   items,
   latest_item_at: null,
+  feed_entries: items,
+  newest_entry_at: null,
 })
 
 describe('loadSourceHealth', () => {

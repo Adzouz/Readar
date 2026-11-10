@@ -9,6 +9,8 @@ import { syncCatalog, syncFollowed } from './sync.ts'
 
 const once = process.argv.includes('--once')
 const LOOP_MS = 60_000
+/** How often the wait between passes checks for a "fetch now" from the app. */
+const REQUEST_CHECK_MS = 5_000
 const BATCH = 25
 const FETCH_CONCURRENCY = 6
 const EXTRACT_CONCURRENCY = 3
@@ -78,14 +80,52 @@ async function pass(): Promise<number> {
   return added
 }
 
+/** Whether someone asked for a fetch the worker hasn't answered yet (they just added sources). */
+async function requested(): Promise<boolean> {
+  try {
+    const [row] = await sql<{ waiting: boolean }[]>`
+      select exists (select 1 from public.fetch_requests where done_at is null) as waiting`
+    return row?.waiting === true
+  } catch (error) {
+    log.warn(`fetch requests: ${error instanceof Error ? error.message : String(error)}`)
+    return false
+  }
+}
+
+/** Answers the requests made before this pass started; later ones get the next pass. */
+async function answer(passStart: Date): Promise<void> {
+  try {
+    await sql`
+      update public.fetch_requests set done_at = now()
+      where done_at is null and requested_at <= ${passStart}`
+  } catch (error) {
+    log.warn(`fetch requests: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
+/** Waits until the next pass is due, or until the app asks for one. */
+async function waitForNextPass(): Promise<void> {
+  const until = Date.now() + LOOP_MS
+  while (!state.stopping && Date.now() < until) {
+    await new Promise((resolve) => setTimeout(resolve, REQUEST_CHECK_MS))
+    if (await requested()) {
+      log.info('fetch requested by the app')
+      return
+    }
+  }
+}
+
 async function main(): Promise<void> {
   await syncCatalog()
   do {
     const started = Date.now()
+    // The database clock, so requests and this pass compare on the same time.
+    const [clock] = await sql<{ now: Date }[]>`select now()`
     const added = await pass()
+    if (clock) await answer(clock.now)
     log.info(`pass done: ${added} new items in ${Math.round((Date.now() - started) / 1000)}s`)
     if (once || state.stopping) break
-    await new Promise((resolve) => setTimeout(resolve, LOOP_MS))
+    await waitForNextPass()
   } while (!state.stopping)
 }
 

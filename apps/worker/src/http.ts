@@ -1,10 +1,57 @@
 // Polite HTTP for the worker: one identifiable user agent, timeouts, robots.txt for pages.
+// Safe for links anyone can add: only public web addresses, checked again at every redirect.
+
+import { lookup } from 'node:dns/promises'
+import { isIP } from 'node:net'
 
 export const USER_AGENT = 'Readar/0.1 (+https://github.com/Adzouz/Readar; feed reader)'
 const ROBOTS_AGENT = 'readar'
 const TIMEOUT_MS = 20_000
 /** Bodies larger than this are cut off: feeds and articles never need more. */
 const MAX_BYTES = 5 * 1024 * 1024
+const MAX_REDIRECTS = 5
+
+const v4 = (ip: string) => ip.split('.').map(Number) as [number, number, number, number]
+
+/** Loopback, private, link-local (cloud metadata), carrier-grade NAT, multicast, reserved. */
+export function isPrivateAddress(ip: string): boolean {
+  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip)?.[1]
+  if (mapped) return isPrivateAddress(mapped)
+  if (isIP(ip) === 4) {
+    const [a, b] = v4(ip)
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      a >= 224
+    )
+  }
+  const lower = ip.toLowerCase()
+  return (
+    lower === '::' ||
+    lower === '::1' ||
+    /^f[cd]/.test(lower) || // unique local
+    /^fe[89ab]/.test(lower) || // link-local
+    /^ff/.test(lower) // multicast
+  )
+}
+
+/** Throws unless the URL is http(s) on a host that only resolves to public addresses. */
+async function assertPublic(url: URL): Promise<void> {
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Not a web address')
+  const host = url.hostname.replace(/^\[|\]$/g, '')
+  const addresses = isIP(host)
+    ? [host]
+    : (await lookup(host, { all: true })).map((entry) => entry.address)
+  if (!addresses.length || addresses.some(isPrivateAddress)) {
+    throw new Error('Private address: not a public website')
+  }
+}
 
 export interface FetchResult {
   status: number
@@ -17,17 +64,51 @@ export async function get(
   url: string,
   options: { accept?: string; headers?: Record<string, string> } = {},
 ): Promise<FetchResult> {
-  const response = await fetch(url, {
-    headers: {
-      'user-agent': USER_AGENT,
-      accept: options.accept ?? '*/*',
-      ...options.headers,
-    },
-    redirect: 'follow',
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
-  const body = response.status === 304 ? '' : await readCapped(response)
-  return { status: response.status, url: response.url || url, headers: response.headers, body }
+  const signal = AbortSignal.timeout(TIMEOUT_MS)
+  let current = new URL(url)
+  // Redirects are followed by hand so each hop is checked: a public page can't bounce the
+  // worker to a private address.
+  for (let hop = 0; ; hop += 1) {
+    await assertPublic(current)
+    const response = await fetch(current, {
+      headers: {
+        'user-agent': USER_AGENT,
+        accept: options.accept ?? '*/*',
+        ...options.headers,
+      },
+      redirect: 'manual',
+      signal,
+    })
+    const location = response.headers.get('location')
+    if (response.status >= 300 && response.status < 400 && response.status !== 304 && location) {
+      await response.body?.cancel()
+      if (hop >= MAX_REDIRECTS) throw new Error('Too many redirects')
+      current = new URL(location, current)
+      continue
+    }
+    const body = response.status === 304 ? '' : await readCapped(response)
+    return { status: response.status, url: current.href, headers: response.headers, body }
+  }
+}
+
+/**
+ * A bot challenge or firewall page (Cloudflare, Akamai, Sucuri…) rather than a plain refusal:
+ * the site lets browsers in but not feed readers.
+ */
+export function blockedByFirewall(response: Pick<FetchResult, 'status' | 'headers' | 'body'>) {
+  if (![401, 403, 429, 503].includes(response.status)) return false
+  if (response.headers.get('cf-mitigated')) return true
+  const server = response.headers.get('server') ?? ''
+  const page = response.body.slice(0, 20_000)
+  return (
+    /cloudflare|akamai|sucuri|imperva|incapsula|ddos-guard/i.test(server) ||
+    /just a moment|attention required|cf-chl|captcha|ddos protection|access denied/i.test(page)
+  )
+}
+
+/** The error for a response that isn't a 200, with "(firewall)" when a firewall stopped us. */
+export function httpError(response: Pick<FetchResult, 'status' | 'headers' | 'body'>): Error {
+  return new Error(`HTTP ${response.status}${blockedByFirewall(response) ? ' (firewall)' : ''}`)
 }
 
 async function readCapped(response: Response): Promise<string> {

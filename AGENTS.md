@@ -40,7 +40,8 @@ pnpm check:feeds  # fetch every catalog feed; run after editing packages/core/sr
 pnpm ui:check     # with pnpm dev running: no screen overflows the window
 pnpm ui:shots     # with pnpm dev running: screenshots into .screenshots/
 pnpm db:push      # apply supabase/migrations (DATABASE_URL in root .env.local or .env)
-pnpm worker       # fetch loop (pnpm worker:once for a single pass)
+pnpm worker       # fetch loop (pnpm worker:once for a single pass); in production GitHub Actions
+                  # runs worker:once every hour (.github/workflows/fetch.yml)
 ```
 
 Rust comes from rustup (`~/.cargo/bin`); open a new shell after installing it, or run `. "$HOME/.cargo/env"`.

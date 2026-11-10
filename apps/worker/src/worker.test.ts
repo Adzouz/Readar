@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allowedBy, parseRobots } from './http.ts'
+import { allowedBy, blockedByFirewall, isPrivateAddress, parseRobots } from './http.ts'
 import { looksLikeFeed, parseEntries } from './parse.ts'
 import { decodeEntities, readingMinutes, textFromHtml } from './text.ts'
 
@@ -91,5 +91,50 @@ describe('text', () => {
   it('estimates reading time', () => {
     expect(readingMinutes('word '.repeat(460))).toBe(2)
     expect(readingMinutes('')).toBe(1)
+  })
+})
+
+describe('blockedByFirewall', () => {
+  const response = (status: number, headers: Record<string, string>, body = '') => ({
+    status,
+    headers: new Headers(headers),
+    body,
+  })
+
+  it('spots bot challenges and firewall pages', () => {
+    expect(blockedByFirewall(response(403, { 'cf-mitigated': 'challenge' }))).toBe(true)
+    expect(blockedByFirewall(response(503, { server: 'cloudflare' }))).toBe(true)
+    expect(blockedByFirewall(response(403, {}, '<title>Just a moment...</title>'))).toBe(true)
+  })
+
+  it('leaves plain errors alone', () => {
+    expect(blockedByFirewall(response(403, { server: 'nginx' }, 'Forbidden'))).toBe(false)
+    expect(blockedByFirewall(response(404, { server: 'cloudflare' }))).toBe(false)
+  })
+})
+
+describe('isPrivateAddress', () => {
+  it('blocks loopback, private ranges, cloud metadata and IPv6 local addresses', () => {
+    for (const ip of [
+      '127.0.0.1',
+      '10.1.2.3',
+      '172.20.0.1',
+      '192.168.1.10',
+      '169.254.169.254',
+      '100.64.0.1',
+      '0.0.0.0',
+      '::1',
+      'fd00::1',
+      'fe80::1',
+      '::ffff:127.0.0.1',
+    ]) {
+      expect(isPrivateAddress(ip), ip).toBe(true)
+    }
+  })
+
+  it('lets public addresses through', () => {
+    for (const ip of ['185.199.108.153', '8.8.8.8', '172.32.0.1', '2606:4700::6810:84e5']) {
+      expect(isPrivateAddress(ip), ip).toBe(false)
+    }
   })
 })
