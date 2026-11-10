@@ -55,12 +55,22 @@ export function ClaudeKey({
           </p>
           <button
             type="button"
-            onClick={() => void disconnectClaude()}
+            onClick={() => {
+              setError('')
+              disconnectClaude().catch(() =>
+                setError("Couldn't remove the key from this device. Try again."),
+              )
+            }}
             className="rounded-ui px-2.5 py-1.5 text-[13px] font-medium text-muted hover:bg-hover hover:text-ink"
           >
             Remove
           </button>
         </div>
+        {error && (
+          <p role="alert" className="text-[13px] text-nope">
+            {error}
+          </p>
+        )}
         {showAhead && <SummarizeAhead />}
       </div>
     )

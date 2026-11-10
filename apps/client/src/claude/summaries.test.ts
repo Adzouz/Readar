@@ -18,10 +18,13 @@ const { deckStore } = await import('@/deck/store')
 const { summarize, summarizeAhead, useSummaries, useSummarizeAhead } = await import('./summaries')
 
 const written = {
-  tldr: 'Claude TL;DR',
-  points: ['one', 'two', 'three'],
-  contentType: 'article',
-  readingMinutes: 4,
+  summary: {
+    tldr: 'Claude TL;DR',
+    points: ['one', 'two', 'three'],
+    contentType: 'article',
+    readingMinutes: 4,
+  },
+  model: 'claude-sonnet-5-5',
 }
 const ids = SAMPLE_ITEMS.map((item) => item.id)
 
@@ -84,5 +87,28 @@ describe('summarizeAhead', () => {
     fake.write.mockRejectedValue(new APIError(401, undefined, 'invalid x-api-key', new Headers()))
     await summarizeAhead(ids)
     expect(fake.write).toHaveBeenCalledOnce()
+  })
+
+  it('stops on a rate limit without skipping those cards next time', async () => {
+    useSummarizeAhead.setState({ ahead: true })
+    fake.write.mockRejectedValueOnce(new APIError(429, undefined, 'rate limited', new Headers()))
+    await summarizeAhead(ids)
+    expect(fake.write).toHaveBeenCalledOnce()
+    expect(useSummaries.getState().failed).toEqual({})
+
+    await summarizeAhead(ids)
+    expect(deckStore.getState().items[ids[0]!]?.summary?.tldr).toBe('Claude TL;DR')
+  })
+})
+
+describe('account switch', () => {
+  it('drops a summary that comes back after the switch', async () => {
+    const { forgetSummaries } = await import('@/sync/summaries')
+    fake.write.mockImplementation(async () => {
+      forgetSummaries() // the user switched accounts while Claude was writing
+      return written
+    })
+    expect(await summarize(ids[0]!)).toMatchObject({ ok: false })
+    expect(deckStore.getState().items[ids[0]!]?.summary).toBeUndefined()
   })
 })

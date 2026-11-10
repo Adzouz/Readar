@@ -49,8 +49,14 @@ export function summaryProblem(error: unknown): SummaryProblem {
   return { message: "Claude couldn't summarize this one.", blocking: false }
 }
 
+export interface Written {
+  summary: Summary
+  /** The model that answered: a declined request can be retried on a fallback model. */
+  model: string
+}
+
 /** Asks Claude for one card's summary with the user's own key. Throws API errors as they are. */
-export async function writeSummary(key: string, input: SummaryInput): Promise<Summary | null> {
+export async function writeSummary(key: string, input: SummaryInput): Promise<Written | null> {
   // The key belongs to the person using this app; the device is where it is meant to be used.
   const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true, maxRetries: 1 })
   const response = await client.beta.messages.parse({
@@ -62,5 +68,7 @@ export async function writeSummary(key: string, input: SummaryInput): Promise<Su
     system: SUMMARY_SYSTEM,
     messages: [{ role: 'user', content: summaryPrompt(input).prompt }],
   })
-  return response.stop_reason === 'refusal' ? null : response.parsed_output
+  const summary = response.parsed_output
+  if (response.stop_reason === 'refusal' || !summary) return null
+  return { summary, model: response.model }
 }

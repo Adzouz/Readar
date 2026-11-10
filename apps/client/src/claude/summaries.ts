@@ -3,11 +3,11 @@
 // user's own key, so nothing is summarized unless they ask, or switch "Summarize ahead" on.
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { SUMMARY_MODEL, SUMMARY_PROMPT_VERSION } from '@readar/core'
+import { SUMMARY_PROMPT_VERSION } from '@readar/core'
 import type { CardSummary } from '@/deck/summary'
 import { deckStore } from '@/deck/store'
 import { supabase } from '@/lib/supabase'
-import { rememberSummary } from '@/sync/summaries'
+import { rememberSummary, summaryAccount } from '@/sync/summaries'
 import { readClaudeKey } from './key'
 
 /** Cards "Summarize ahead" prepares beyond the one on top of the deck. */
@@ -16,7 +16,7 @@ export const AHEAD = 5
 interface SummaryState {
   /** Cards being summarized right now. */
   pending: Record<string, true>
-  /** Why a card's last summary failed. */
+  /** Cards Claude can't summarize (no text, declined): "Summarize ahead" skips them. */
   failed: Record<string, string>
   /** Set by key or credit trouble: "Summarize ahead" stops until the user fixes it. */
   paused: string | null
@@ -42,7 +42,14 @@ export const useSummarizeAhead = create<AheadSetting>()(
 )
 
 export type SummarizeResult =
-  { ok: true } | { ok: false; reason: 'no-key' | 'busy' | 'failed'; message?: string }
+  | { ok: true }
+  | {
+      ok: false
+      reason: 'no-key' | 'busy' | 'failed'
+      message?: string
+      /** Offline, rate limited or Claude busy: worth trying again later, not a lasting skip. */
+      transient?: boolean
+    }
 
 const setPending = (itemId: string, on: boolean): void =>
   useSummaries.setState((state) => {
@@ -71,13 +78,18 @@ async function inputFor(itemId: string) {
 }
 
 /** Saves the summary for the user's other devices. The card keeps it even when this fails. */
-async function save(itemId: string, summary: CardSummary, contentType: string): Promise<void> {
+async function save(
+  itemId: string,
+  summary: CardSummary,
+  contentType: string,
+  model: string,
+): Promise<void> {
   if (!supabase) return
   const { error } = await supabase.from('summaries').upsert(
     {
       item_id: itemId,
       prompt_version: SUMMARY_PROMPT_VERSION,
-      model: SUMMARY_MODEL,
+      model,
       tldr: summary.tldr,
       points: summary.points,
       content_type: contentType as 'article' | 'video' | 'thread' | 'podcast',
@@ -106,24 +118,29 @@ export async function summarize(itemId: string): Promise<SummarizeResult> {
     return { failed }
   })
   const { summaryProblem, writeSummary } = await import('./summarize')
+  // A summary that comes back after an account switch belongs to nobody on screen any more.
+  const account = summaryAccount()
   try {
     const input = await inputFor(itemId)
     if (!input) return fail(itemId, 'The source gave no text to summarize. Open the original.')
     const written = await writeSummary(key, input)
     if (!written) return fail(itemId, 'Claude declined to summarize this one.')
+    if (summaryAccount() !== account) return { ok: false, reason: 'failed' }
     const summary: CardSummary = {
-      tldr: written.tldr,
-      points: written.points,
-      readingMinutes: written.readingMinutes,
+      tldr: written.summary.tldr,
+      points: written.summary.points,
+      readingMinutes: written.summary.readingMinutes,
     }
     rememberSummary(itemId, summary)
     deckStore.getState().applySummary(itemId, summary)
     useSummaries.setState({ paused: null })
-    await save(itemId, summary, written.contentType)
+    await save(itemId, summary, written.summary.contentType, written.model)
     return { ok: true }
   } catch (error) {
     const problem = summaryProblem(error)
     if (problem.blocking) useSummaries.setState({ paused: problem.message })
+    // Not a lasting skip: the same card can work in a minute.
+    else return { ok: false, reason: 'failed', message: problem.message, transient: true }
     return fail(itemId, problem.message)
   } finally {
     setPending(itemId, false)
@@ -132,7 +149,8 @@ export async function summarize(itemId: string): Promise<SummarizeResult> {
 
 /**
  * "Summarize ahead": the next cards of a deck, one at a time. Skips cards already summarized,
- * in progress or failed, and stops on key or credit trouble.
+ * in progress or that Claude can't summarize. Stops on key or credit trouble, and on a passing
+ * error (offline, rate limit) so it doesn't fire every next card into it.
  */
 export async function summarizeAhead(itemIds: string[]): Promise<void> {
   if (!useSummarizeAhead.getState().ahead) return
@@ -142,6 +160,6 @@ export async function summarizeAhead(itemIds: string[]): Promise<void> {
     const item = deckStore.getState().items[itemId]
     if (!item || item.summary || pending[itemId] || failed[itemId]) continue
     const result = await summarize(itemId)
-    if (!result.ok && result.reason === 'no-key') return
+    if (!result.ok && (result.reason === 'no-key' || result.transient)) return
   }
 }

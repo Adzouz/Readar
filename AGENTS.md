@@ -6,24 +6,24 @@ Guide for coding agents and contributors working on Readar.
 
 ## Layout
 
-| Path                         | Role                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------ |
-| `apps/client`                | React app (Vite) shared by the Mac app, the iPhone app and the web app   |
-| `apps/client/src/theme`      | Theme tokens (`themes.css`), theme store, `ThemeScope`, light/dark mode  |
-| `apps/client/src/deck`       | Deck store (zustand), cards per theme, swipe gestures, keyboard, lists   |
-| `apps/client/src/shell`      | App layout per theme, navigation, settings, toasts                       |
-| `apps/client/src/onboarding` | Setup flow (style, topics, sources), setup store, deck wiring            |
-| `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                       |
-| `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox              |
-| `apps/client/src/claude`     | The user's Claude key (keychain on Mac/iPhone, browser storage on web)   |
-| `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)      |
-| `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)       |
-| `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)          |
-| `apps/client/src-tauri`      | Tauri 2 shell for macOS and iOS                                          |
-| `scripts/check-feeds.ts`     | Health check for every catalog feed (`pnpm check:feeds`)                 |
-| `scripts/db-push.ts`         | `pnpm db:push`: applies migrations with DATABASE_URL, never printed      |
-| `scripts/ui`                 | Layout check and screenshots against the dev server (Playwright, Chrome) |
-| `docs/brief.html`            | Source of the product brief page (published as a claude.ai artifact)     |
+| Path                         | Role                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `apps/client`                | React app (Vite) shared by the Mac app, the iPhone app and the web app     |
+| `apps/client/src/theme`      | Theme tokens (`themes.css`), theme store, `ThemeScope`, light/dark mode    |
+| `apps/client/src/deck`       | Deck store (zustand), cards per theme, swipe gestures, keyboard, lists     |
+| `apps/client/src/shell`      | App layout per theme, navigation, settings, toasts                         |
+| `apps/client/src/onboarding` | Setup flow (style, topics, sources, Claude), setup store, deck wiring      |
+| `apps/client/src/data`       | Sample cards (used when Supabase isn't configured)                         |
+| `apps/client/src/sync`       | Supabase session, setup sync, decks and lists, swipe outbox                |
+| `apps/client/src/claude`     | Claude key (keychain or browser), key check, summaries on demand and ahead |
+| `apps/worker`                | Fetch worker: source sync, feeds, dedupe, text extraction (Node 26)        |
+| `packages/core`              | Topic catalog, URL helpers, shared types (client, worker, scripts)         |
+| `supabase/migrations`        | Schema, RLS, grants, client functions (plain SQL, Supabase CLI)            |
+| `apps/client/src-tauri`      | Tauri 2 shell for macOS and iOS                                            |
+| `scripts/check-feeds.ts`     | Health check for every catalog feed (`pnpm check:feeds`)                   |
+| `scripts/db-push.ts`         | `pnpm db:push`: applies migrations with DATABASE_URL, never printed        |
+| `scripts/ui`                 | Layout check and screenshots against the dev server (Playwright, Chrome)   |
+| `docs/brief.html`            | Source of the product brief page (published as a claude.ai artifact)       |
 
 ## Commands
 

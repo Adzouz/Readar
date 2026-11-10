@@ -16,7 +16,14 @@ export const rememberSummary = (itemId: string, summary: CardSummary): void => {
   known.set(itemId, summary)
 }
 
-export const forgetSummaries = (): void => known.clear()
+/** Changes on every account switch, so a summary still in flight can tell it is stale. */
+let account = 0
+export const summaryAccount = (): number => account
+
+export const forgetSummaries = (): void => {
+  known.clear()
+  account += 1
+}
 
 export const summaryOf = (row: Pick<SummaryRow, 'tldr' | 'points' | 'reading_minutes'>) => ({
   tldr: row.tldr,
