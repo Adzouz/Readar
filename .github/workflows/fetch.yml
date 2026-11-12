@@ -1,12 +1,12 @@
 # Readar's fetch worker for everyone (PLAN.md §11): one pass over every followed source, every
-# hour. A pass also answers the app's "fetch now" requests made since the last one.
+# 15 minutes (free: the repo is public). A pass also answers the app's "fetch now" requests made since the last one.
 # Secrets (repo Settings → Secrets and variables → Actions): DATABASE_URL, optional YOUTUBE_API_KEY.
 name: Fetch articles
 
 on:
   schedule:
-    # Minute 17 rather than :00, when GitHub's scheduler is busiest and runs start late.
-    - cron: '17 * * * *'
+    # Off the quarter hours, when GitHub's scheduler is busiest and runs start late.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 
 # Never two passes at once; a run that starts while one is going waits for it.
