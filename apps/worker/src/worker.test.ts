@@ -1,8 +1,16 @@
-import { describe, expect, it } from 'vitest'
-import { allowedBy, blockedByFirewall, isPrivateAddress, parseRobots } from './http.ts'
+import { describe, expect, it, vi } from 'vitest'
+import { allowedBy, blockedByFirewall, get, isPrivateAddress, parseRobots } from './http.ts'
 import { sourceLabel } from './log.ts'
 import { looksLikeFeed, parseEntries } from './parse.ts'
 import { decodeEntities, readingMinutes, textFromHtml } from './text.ts'
+
+// No network in tests: every lookup fails the way Node's does for a dead host.
+vi.mock('node:dns/promises', () => ({
+  lookup: (host: string) =>
+    Promise.reject(
+      Object.assign(new Error(`getaddrinfo ENOTFOUND ${host}`), { code: 'ENOTFOUND' }),
+    ),
+}))
 
 const RSS = `<?xml version="1.0"?>
 <?xml-stylesheet href="/style.xsl" type="text/xsl"?>
@@ -167,5 +175,13 @@ describe('sourceLabel', () => {
     const search = { id: '41', slug: 'gnews:my secret keyword', kind: 'search' }
     expect(sourceLabel(search)).toBe('search #41')
     expect(sourceLabel(search)).not.toContain('secret')
+  })
+})
+
+describe('get', () => {
+  it('reports a failed DNS lookup without the host', async () => {
+    const failure = get('https://my-private-blog.example/feed.xml')
+    await expect(failure).rejects.toThrow('Site not found')
+    await expect(failure).rejects.not.toThrow(/my-private-blog/)
   })
 })
