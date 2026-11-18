@@ -1,7 +1,7 @@
 // "Fetch now" (PLAN.md §11): when the user adds sources and goes back to the deck, the app asks
 // for a fetch. A running worker answers within seconds ("Fetching new articles…"); otherwise the
-// GitHub Actions run every 15 minutes picks it up ("within 15 minutes"). Either way the cards reload
-// once the pass is done.
+// GitHub Actions run every 15 minutes picks it up ("within 30 minutes": GitHub often starts runs
+// late). Either way the cards reload once the pass is done.
 import { create } from 'zustand'
 import { deckStore } from '@/deck/store'
 import { supabase } from '@/lib/supabase'
@@ -39,10 +39,10 @@ export function addsSources(before: Picks, after: Picks): boolean {
 export const POLL_MS = 4_000
 /** Waiting for the next scheduled run: check now and then, quietly. */
 export const SLOW_POLL_MS = 30_000
-/** How long "within 15 minutes" stays on screen. */
+/** How long "within 30 minutes" stays on screen. */
 export const NOTICE_MS = 8_000
-/** The next scheduled run, plus GitHub's usual delay; past this, stop watching. */
-export const GIVE_UP_MS = 30 * 60_000
+/** Outlasts one dropped or late scheduled run (they run every 15 min); past this, stop watching. */
+export const GIVE_UP_MS = 45 * 60_000
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const later = (a: string, b: string) => Date.parse(a) >= Date.parse(b)

@@ -74,12 +74,13 @@ export async function syncFollowed(): Promise<void> {
         select ${watch.topic_id}, id from public.sources where slug = ${source.id}
         on conflict do nothing`
     }
-    log.info(`keyword topic ${watch.topic_id}`)
   }
+  if (watches.length) log.info(`keyword topics: +${watches.length}`)
 
   const links = await sql<{ url: string }[]>`
     select distinct us.url from public.user_sources us
     where not exists (select 1 from public.sources s where s.url = us.url)`
+  let linked = 0
   for (const { url } of links) {
     let host: string
     try {
@@ -91,6 +92,7 @@ export async function syncFollowed(): Promise<void> {
       insert into public.sources (url, kind, name, site)
       values (${url}, 'link', ${host}, ${host})
       on conflict do nothing`
-    log.info(`link source ${host}`)
+    linked += 1
   }
+  if (linked) log.info(`link sources: +${linked}`)
 }

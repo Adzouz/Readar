@@ -33,11 +33,11 @@ describe('healthOf', () => {
     expect(healthOf(link, true, NOW)).toEqual({ state: 'waiting', label: 'Syncing…' })
     expect(healthOf(link, false, NOW)).toEqual({
       state: 'waiting',
-      label: 'Fetched within 15 minutes',
+      label: 'Fetched within 30 minutes',
     })
     // A link saved after the last health load has no row yet.
     expect(healthOf(undefined, true, NOW).label).toBe('Syncing…')
-    expect(healthOf(undefined, false, NOW).label).toBe('Fetched within 15 minutes')
+    expect(healthOf(undefined, false, NOW).label).toBe('Fetched within 30 minutes')
   })
 
   it('flags a source that was fetched but brought nothing', () => {

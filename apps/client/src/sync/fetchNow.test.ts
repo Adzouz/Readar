@@ -64,7 +64,7 @@ describe('fetchNewArticles', () => {
     expect(useToast.getState().message).toMatch(/new articles yet/)
   })
 
-  it('without a worker, says "within 15 minutes", then reloads when the scheduled run is done', async () => {
+  it('without a worker, says "within 30 minutes", then reloads when the scheduled run is done', async () => {
     let done: string | null = '2026-11-10T11:00:00.000Z' // an older pass
     fake.rpc.mockImplementation(async (name) =>
       name === 'request_fetch'
@@ -78,6 +78,22 @@ describe('fetchNewArticles', () => {
     expect(useFetchNow.getState().status).toBe('idle') // the notice goes, the watch goes on
 
     done = '2026-11-10T12:30:00.000Z' // the scheduled run answered
+    await vi.advanceTimersByTimeAsync(SLOW_POLL_MS)
+    await run
+    expect(fake.load).toHaveBeenCalledOnce()
+  })
+
+  it('keeps watching through one dropped scheduled run', async () => {
+    // Request at :08, the :22 run is dropped, the :37 run answers at :39 (31 minutes later).
+    let done: string | null = '2026-11-10T11:00:00.000Z'
+    fake.rpc.mockImplementation(async (name) =>
+      name === 'request_fetch'
+        ? { data: REQUESTED, error: null }
+        : status({ done_at: done, worker_active: false }),
+    )
+    const run = fetchNewArticles()
+    await vi.advanceTimersByTimeAsync(31 * 60_000)
+    done = '2026-11-10T12:30:00.000Z'
     await vi.advanceTimersByTimeAsync(SLOW_POLL_MS)
     await run
     expect(fake.load).toHaveBeenCalledOnce()

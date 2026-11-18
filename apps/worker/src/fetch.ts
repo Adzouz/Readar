@@ -5,7 +5,7 @@ import { canonicalUrl, MAX_ENTRY_AGE_DAYS } from '@readar/core'
 import { sql, type SourceRow } from './db.ts'
 import { decodeGoogleNewsLink, isGoogleNewsLink } from './gnews.ts'
 import { FEED_ACCEPT, get, HTML_ACCEPT, httpError } from './http.ts'
-import { log } from './log.ts'
+import { log, sourceLabel } from './log.ts'
 import { looksLikeFeed, parseEntries, type Entry } from './parse.ts'
 import { readingMinutes } from './text.ts'
 import { channelIdOf, uploadsFromApi } from './youtube.ts'
@@ -228,7 +228,7 @@ async function fail(source: SourceRow, error: unknown, retryAfterS?: number): Pr
       error_count = error_count + 1,
       next_fetch_at = now() + make_interval(secs => ${backoff})
     where id = ${source.id}`
-  log.warn(`${source.slug ?? source.url}: ${message}`)
+  log.warn(`${sourceLabel(source)}: ${message}`)
 }
 
 export async function fetchSource(source: SourceRow): Promise<FetchOutcome> {
@@ -272,7 +272,7 @@ export async function fetchSource(source: SourceRow): Promise<FetchOutcome> {
       }
     }
     await succeed(source, outcome.added, { ...result, entries: result.entries })
-    if (outcome.added) log.info(`${source.slug ?? source.url}: +${outcome.added}`)
+    if (outcome.added) log.info(`${sourceLabel(source)}: +${outcome.added}`)
   } catch (error) {
     await fail(source, error)
   }

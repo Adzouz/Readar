@@ -38,7 +38,7 @@ async function extract(items: { id: string; url: string }[]): Promise<void> {
           language = coalesce(language, ${article.language})
         where id = ${item.id}`
     } catch (error) {
-      log.warn(`extract ${item.url}: ${error instanceof Error ? error.message : String(error)}`)
+      log.warn(`extract item ${item.id}: ${error instanceof Error ? error.message : String(error)}`)
     }
   })
 }

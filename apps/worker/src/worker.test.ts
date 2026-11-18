@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { allowedBy, blockedByFirewall, isPrivateAddress, parseRobots } from './http.ts'
+import { sourceLabel } from './log.ts'
 import { looksLikeFeed, parseEntries } from './parse.ts'
 import { decodeEntities, readingMinutes, textFromHtml } from './text.ts'
 
@@ -151,5 +152,20 @@ describe('isPrivateAddress', () => {
     const host = (url: string) => new URL(url).hostname.replace(/^\[|\]$/g, '')
     expect(isPrivateAddress(host('http://[::ffff:127.0.0.1]:8080/feed'))).toBe(true)
     expect(isPrivateAddress(host('http://[::ffff:169.254.169.254]/'))).toBe(true)
+  })
+})
+
+describe('sourceLabel', () => {
+  // Actions logs are public: what a user added must never show up in them.
+  it('keeps public catalog slugs', () => {
+    expect(sourceLabel({ id: '12', slug: 'verge', kind: 'feed' })).toBe('verge')
+  })
+
+  it('hides user links and keyword searches behind their id', () => {
+    const link = { id: '40', slug: null, kind: 'feed' }
+    expect(sourceLabel(link)).toBe('feed #40')
+    const search = { id: '41', slug: 'gnews:my secret keyword', kind: 'search' }
+    expect(sourceLabel(search)).toBe('search #41')
+    expect(sourceLabel(search)).not.toContain('secret')
   })
 })

@@ -1,5 +1,7 @@
 # Readar's fetch worker for everyone (PLAN.md §11): one pass over every followed source, every
-# 15 minutes (free: the repo is public). A pass also answers the app's "fetch now" requests made since the last one.
+# 15 minutes (free: the repo is public). A pass also answers the app's "fetch now" requests made since
+# the last one. Public repo: run logs are public, so the worker never logs user data. GitHub turns this
+# schedule off after 60 days without repo activity; re-enable it in the Actions tab (PLAN.md §11).
 # Secrets (repo Settings → Secrets and variables → Actions): DATABASE_URL, optional YOUTUBE_API_KEY.
 name: Fetch articles
 
