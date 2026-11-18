@@ -80,9 +80,16 @@ export function isPrivateAddress(ip: string): boolean {
 async function assertPublic(url: URL): Promise<void> {
   if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Not a web address')
   const host = url.hostname.replace(/^\[|\]$/g, '')
-  const addresses = isIP(host)
-    ? [host]
-    : (await lookup(host, { all: true })).map((entry) => entry.address)
+  let addresses: string[]
+  try {
+    addresses = isIP(host)
+      ? [host]
+      : (await lookup(host, { all: true })).map((entry) => entry.address)
+  } catch {
+    // Node's message is `getaddrinfo ENOTFOUND <host>`: it would put a user's link in the public
+    // Actions log and in `last_error` (PLAN.md §11). Keep a fixed message.
+    throw new Error('Site not found')
+  }
   if (!addresses.length || addresses.some(isPrivateAddress)) {
     throw new Error('Private address: not a public website')
   }
